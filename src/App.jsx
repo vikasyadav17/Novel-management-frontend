@@ -26,8 +26,7 @@ function App() {
           className="app-header"
           style={{
             background: "linear-gradient(90deg, #eaf6ff 0%, #dde6f7 100%)",
-            padding: "48px 0 24px 0",
-            textAlign: "center",
+            padding: "32px 0 24px 0",
             boxShadow: "0 2px 12px rgba(41,128,185,0.06)",
             marginBottom: "32px",
             borderRadius: "0 0 32px 32px",
@@ -36,54 +35,67 @@ function App() {
           <div
             style={{
               display: "flex",
-              flexDirection: "column",
               alignItems: "center",
+              justifyContent: "space-between",
+              maxWidth: "1100px",
+              margin: "0 auto",
+              padding: "0 32px",
             }}
           >
-            <span style={{ marginBottom: "8px" }}>
-              <svg width="48" height="48" viewBox="0 0 48 48">
-                <rect
-                  x="8"
-                  y="12"
-                  width="32"
-                  height="24"
-                  rx="6"
-                  fill="#2980b9"
-                  opacity="0.18"
-                />
-                <rect
-                  x="12"
-                  y="8"
-                  width="32"
-                  height="24"
-                  rx="6"
-                  fill="#27ae60"
-                  opacity="0.18"
-                />
-                <rect
-                  x="4"
-                  y="16"
-                  width="32"
-                  height="24"
-                  rx="6"
-                  fill="#e74c3c"
-                  opacity="0.18"
-                />
-              </svg>
-            </span>
-            <h1
-              style={{
-                fontSize: "2.8rem",
-                fontWeight: "bold",
-                color: "#222",
-                textShadow: "0 2px 8px rgba(41,128,185,0.08)",
-                margin: "0 0 10px 0",
-                letterSpacing: "1px",
-              }}
-            >
-              Novel Updates
-            </h1>
-            <nav style={{ marginTop: "8px" }}>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <span style={{ marginRight: "14px" }}>
+                <svg width="48" height="48" viewBox="0 0 48 48">
+                  <rect
+                    x="8"
+                    y="12"
+                    width="32"
+                    height="24"
+                    rx="6"
+                    fill="#2980b9"
+                    opacity="0.18"
+                  />
+                  <rect
+                    x="12"
+                    y="8"
+                    width="32"
+                    height="24"
+                    rx="6"
+                    fill="#27ae60"
+                    opacity="0.18"
+                  />
+                  <rect
+                    x="4"
+                    y="16"
+                    width="32"
+                    height="24"
+                    rx="6"
+                    fill="#e74c3c"
+                    opacity="0.18"
+                  />
+                </svg>
+              </span>
+              <Link
+                to="/"
+                style={{
+                  textDecoration: "none",
+                }}
+              >
+                <h1
+                  style={{
+                    fontSize: "2.2rem",
+                    fontWeight: "bold",
+                    color: "#222",
+                    textShadow: "0 2px 8px rgba(41,128,185,0.08)",
+                    margin: 0,
+                    letterSpacing: "1px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Novel Updates
+                </h1>
+              </Link>
+            </div>
+            <nav>
               <Link
                 to="/"
                 style={{
