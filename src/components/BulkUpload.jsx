@@ -3,7 +3,7 @@ import * as XLSX from "xlsx";
 import { novelApi } from "../services/novelApi"; // Import novelApi
 import logger from "../utils/logger"; // Import logger
 
-function BulkUpload({ onUploadComplete }) {
+function BulkUpload({ onBulkUpload, onUploadComplete }) {
   const [error, setError] = useState(null);
   const [dragging, setDragging] = useState(false);
 
@@ -53,8 +53,8 @@ function BulkUpload({ onUploadComplete }) {
 
         logger.info("Formatted novels with details:", formattedNovels);
 
-        const result = await novelApi.bulkUploadNovels(formattedNovels);
-        onUploadComplete(result, null); // Pass success message to parent
+        await novelApi.bulkUploadNovels(formattedNovels);
+        onUploadComplete(formattedNovels, null); // Pass success message to parent
       } catch (err) {
         setError(
           "Failed to process the file. Please upload a valid Excel file."

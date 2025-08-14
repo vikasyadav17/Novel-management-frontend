@@ -23,6 +23,7 @@ function Library({ darkMode }) {
 
   // Error boundary state
   const [renderError, setRenderError] = useState(null);
+  const [successModal, setSuccessModal] = useState(false); // Add success modal state
 
   useEffect(() => {
     document.title = "Novel Updates";
@@ -162,6 +163,7 @@ function Library({ darkMode }) {
       });
       logger.info("Edit saved successfully for novel ID:", id);
       setEditData({});
+      setSuccessModal(true); // Show success modal
       loadNovels();
     } catch (err) {
       logger.error("Failed to save edits for novel ID:", id, err.message);
@@ -574,7 +576,59 @@ function Library({ darkMode }) {
     );
   }
 
-  return content;
+  return (
+    <>
+      {successModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.2)",
+            zIndex: 10000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              color: "#222",
+              borderRadius: "8px",
+              padding: "24px",
+              minWidth: "320px",
+              boxShadow: "0 2px 16px rgba(0,0,0,0.15)",
+              textAlign: "center",
+            }}
+          >
+            <div style={{ marginBottom: "16px", fontWeight: "bold" }}>
+              Update Successful
+            </div>
+            <div style={{ marginBottom: "12px" }}>
+              The novel has been updated successfully.
+            </div>
+            <button
+              style={{
+                padding: "6px 18px",
+                background: "#2980b9",
+                color: "#fff",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+              onClick={() => setSuccessModal(false)} // Close modal
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+      {content}
+    </>
+  );
 }
 
 export default Library;

@@ -5,7 +5,8 @@ import { novelApi } from "../services/novelApi"; // Import novelApi
 
 function BulkUploadPage() {
   const [uploadedNovels, setUploadedNovels] = useState([]);
-  const [successMessage, setSuccessMessage] = useState(null);
+  const [successModal, setSuccessModal] = useState(false); // Success modal state
+  const [failureModal, setFailureModal] = useState(false); // Failure modal state
   const [errorMessage, setErrorMessage] = useState(null);
 
   const handleBulkUpload = async (novels) => {
@@ -13,7 +14,7 @@ function BulkUploadPage() {
     try {
       if (!novels || novels.length === 0) {
         setErrorMessage("No novels found in the uploaded file.");
-        setSuccessMessage(null);
+        setFailureModal(true); // Show failure modal
         return;
       }
 
@@ -36,28 +37,35 @@ function BulkUploadPage() {
 
       logger.info("Formatted novels:", formattedNovels);
 
-      // Use novelApi to send the bulk upload request
-      const result = await novelApi.bulkUploadNovels(formattedNovels);
+      // Use novelApi to send the bulk upload request and get the response
+      const response = await novelApi.bulkUploadNovels(formattedNovels);
 
-      setUploadedNovels(formattedNovels); // Save the formatted novels to state
-      setSuccessMessage(result);
+      setUploadedNovels([]); // Clear the uploaded novels state
+      setSuccessModal(response.data.message || "Bulk upload successful!"); // Use the response message
       setErrorMessage(null);
       logger.info("Bulk upload successful.");
     } catch (err) {
-      logger.error("Bulk upload failed:", err.message);
-      setErrorMessage(err.message || "Failed to upload novels in bulk.");
-      setSuccessMessage(null);
+      logger.error("Bulk upload failed:", err);
+
+      // Log the full error response for debugging
+      if (err.response) {
+        logger.error("Backend response:", err.response.data);
+      }
+
+      // Display backend error message if available
+      const backendError =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to upload novels in bulk.";
+      setErrorMessage(backendError);
+      setFailureModal(true); // Show failure modal
     }
   };
 
-  const handleUploadComplete = (successMessage, errorMessage) => {
-    if (successMessage) {
-      setSuccessMessage(successMessage);
-      setErrorMessage(null);
-    } else {
-      setErrorMessage(errorMessage);
-      setSuccessMessage(null);
-    }
+  const onUploadComplete = (uploadedData) => {
+    logger.info("Upload completed with data:", uploadedData);
+    setUploadedNovels(uploadedData); // Update the state with uploaded data
+    setSuccessModal("No of records inserted: " + uploadedData.length); // Show success modal with record count
   };
 
   return (
@@ -65,52 +73,123 @@ function BulkUploadPage() {
       style={{
         display: "flex",
         flexDirection: "column",
-        justifyContent: "flex-start", // Align content to the top like other pages
+        justifyContent: "flex-start",
         alignItems: "center",
-        minHeight: "100vh", // Full viewport height
-        width: "100%", // Full viewport width
-        maxWidth: "1600px", // Set max width to 1600px
-        margin: "0 auto", // Center the content horizontally
+        minHeight: "100vh",
+        width: "100%",
+        maxWidth: "1600px",
+        margin: "0 auto",
         background: "#f7f7fb",
-        padding: "16px", // Standard padding
+        padding: "16px",
       }}
     >
       <h1
         style={{
           textAlign: "center",
-          color: "#000", // Set text color to black
+          color: "#000",
           fontSize: "2.4rem",
           fontWeight: "bold",
-          marginBottom: "16px", // Adjust margin for consistency
+          marginBottom: "16px",
         }}
       >
         Bulk Upload Novels
       </h1>
-      <BulkUpload onUploadComplete={handleUploadComplete} />
-      {successMessage && (
+      <BulkUpload
+        onBulkUpload={handleBulkUpload}
+        onUploadComplete={onUploadComplete}
+      />
+      {successModal && (
         <div
           style={{
-            color: "green",
-            marginTop: "16px", // Adjust margin for consistency
-            textAlign: "center",
-            fontSize: "1.2rem",
-            fontWeight: "bold",
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.2)",
+            zIndex: 10000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          {successMessage}
+          <div
+            style={{
+              background: "#fff",
+              color: "#222",
+              borderRadius: "8px",
+              padding: "24px",
+              minWidth: "320px",
+              boxShadow: "0 2px 16px rgba(0,0,0,0.15)",
+              textAlign: "center",
+            }}
+          >
+            <div style={{ marginBottom: "16px", fontWeight: "bold" }}>
+              Upload Successful
+            </div>
+            <div style={{ marginBottom: "12px" }}>
+              {successModal} {/* Display the success message */}
+            </div>
+            <button
+              style={{
+                padding: "6px 18px",
+                background: "#2980b9",
+                color: "#fff",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+              onClick={() => setSuccessModal(false)} // Close modal
+            >
+              OK
+            </button>
+          </div>
         </div>
       )}
-      {errorMessage && (
+      {failureModal && (
         <div
           style={{
-            color: "red",
-            marginTop: "16px", // Adjust margin for consistency
-            textAlign: "center",
-            fontSize: "1.2rem",
-            fontWeight: "bold",
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.2)",
+            zIndex: 10000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          {errorMessage}
+          <div
+            style={{
+              background: "#fff",
+              color: "#222",
+              borderRadius: "8px",
+              padding: "24px",
+              minWidth: "320px",
+              boxShadow: "0 2px 16px rgba(0,0,0,0.15)",
+              textAlign: "center",
+            }}
+          >
+            <div style={{ marginBottom: "16px", fontWeight: "bold" }}>
+              Upload Failed
+            </div>
+            <div style={{ marginBottom: "12px" }}>{errorMessage}</div>
+            <button
+              style={{
+                padding: "6px 18px",
+                background: "#e74c3c",
+                color: "#fff",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+              onClick={() => setFailureModal(false)} // Close modal
+            >
+              OK
+            </button>
+          </div>
         </div>
       )}
       {uploadedNovels.length > 0 && (
@@ -141,17 +220,17 @@ function BulkUploadPage() {
             <thead>
               <tr style={{ background: "#2980b9", color: "#fff" }}>
                 <th
-                  style={{ padding: "12px", textAlign: "left", color: "#000" }}
+                  style={{ padding: "12px", textAlign: "left", color: "#fff" }}
                 >
                   Title
                 </th>
                 <th
-                  style={{ padding: "12px", textAlign: "left", color: "#000" }}
+                  style={{ padding: "12px", textAlign: "left", color: "#fff" }}
                 >
                   Genre
                 </th>
                 <th
-                  style={{ padding: "12px", textAlign: "left", color: "#000" }}
+                  style={{ padding: "12px", textAlign: "left", color: "#fff" }}
                 >
                   Link
                 </th>
