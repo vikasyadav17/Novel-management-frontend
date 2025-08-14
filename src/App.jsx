@@ -3,6 +3,7 @@ import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import NovelForm from "./components/NovelForm";
 import Library from "./pages/Library";
+import Search from "./pages/Search"; // import Search page
 import "./App.css";
 
 function App() {
@@ -21,11 +22,123 @@ function App() {
   return (
     <Router>
       <div className="app-container">
-        <header className="app-header">
-          <h1>📚 Novel Updates</h1>
-          <nav>
-            <Link to="/">Home</Link> | <Link to="/library">Library</Link>
-          </nav>
+        <header
+          className="app-header"
+          style={{
+            background: "linear-gradient(90deg, #eaf6ff 0%, #dde6f7 100%)",
+            padding: "48px 0 24px 0",
+            textAlign: "center",
+            boxShadow: "0 2px 12px rgba(41,128,185,0.06)",
+            marginBottom: "32px",
+            borderRadius: "0 0 32px 32px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <span style={{ marginBottom: "8px" }}>
+              <svg width="48" height="48" viewBox="0 0 48 48">
+                <rect
+                  x="8"
+                  y="12"
+                  width="32"
+                  height="24"
+                  rx="6"
+                  fill="#2980b9"
+                  opacity="0.18"
+                />
+                <rect
+                  x="12"
+                  y="8"
+                  width="32"
+                  height="24"
+                  rx="6"
+                  fill="#27ae60"
+                  opacity="0.18"
+                />
+                <rect
+                  x="4"
+                  y="16"
+                  width="32"
+                  height="24"
+                  rx="6"
+                  fill="#e74c3c"
+                  opacity="0.18"
+                />
+              </svg>
+            </span>
+            <h1
+              style={{
+                fontSize: "2.8rem",
+                fontWeight: "bold",
+                color: "#222",
+                textShadow: "0 2px 8px rgba(41,128,185,0.08)",
+                margin: "0 0 10px 0",
+                letterSpacing: "1px",
+              }}
+            >
+              Novel Updates
+            </h1>
+            <nav style={{ marginTop: "8px" }}>
+              <Link
+                to="/"
+                style={{
+                  color: "#2980b9",
+                  fontWeight: "500",
+                  textDecoration: "none",
+                  margin: "0 12px",
+                  fontSize: "18px",
+                  padding: "2px 8px",
+                  borderRadius: "8px",
+                  transition: "background 0.2s",
+                }}
+                onMouseOver={(e) => (e.target.style.background = "#eaf6ff")}
+                onMouseOut={(e) => (e.target.style.background = "transparent")}
+              >
+                Home
+              </Link>
+              <span style={{ color: "#bbb", fontSize: "18px" }}>|</span>
+              <Link
+                to="/library"
+                style={{
+                  color: "#2980b9",
+                  fontWeight: "500",
+                  textDecoration: "none",
+                  margin: "0 12px",
+                  fontSize: "18px",
+                  padding: "2px 8px",
+                  borderRadius: "8px",
+                  transition: "background 0.2s",
+                }}
+                onMouseOver={(e) => (e.target.style.background = "#eaf6ff")}
+                onMouseOut={(e) => (e.target.style.background = "transparent")}
+              >
+                Library
+              </Link>
+              <span style={{ color: "#bbb", fontSize: "18px" }}>|</span>
+              <Link
+                to="/search"
+                style={{
+                  color: "#2980b9",
+                  fontWeight: "500",
+                  textDecoration: "none",
+                  margin: "0 12px",
+                  fontSize: "18px",
+                  padding: "2px 8px",
+                  borderRadius: "8px",
+                  transition: "background 0.2s",
+                }}
+                onMouseOver={(e) => (e.target.style.background = "#eaf6ff")}
+                onMouseOut={(e) => (e.target.style.background = "transparent")}
+              >
+                Search
+              </Link>
+            </nav>
+          </div>
         </header>
         <main className="main-content">
           <Routes>
@@ -34,6 +147,7 @@ function App() {
               element={<NovelForm onAddNovel={handleAddNovel} />}
             />
             <Route path="/library" element={<Library />} />
+            <Route path="/search" element={<Search />} /> {/* add this line */}
           </Routes>
           {error && <div>{error}</div>}
         </main>

@@ -277,3 +277,7 @@ body {
   opacity: 1;
   stroke: #1d5c99;
 }
+
+input::placeholder {
+  color: #222;
+}
