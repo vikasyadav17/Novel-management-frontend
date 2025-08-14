@@ -31,11 +31,15 @@ export const novelApi = {
   },
 
   addNovel: async (novelData) => {
-    return axios.post(BASE_URL, novelData);
+    return axios.post(BASE_URL, novelData, {
+      headers: { "Content-Type": "application/json" },
+    });
   },
 
-  updateNovel: async (id, updates) => {
-    return axios.patch(`${BASE_URL}/${id}`, updates);
+  updateNovel: async (id, novelData) => {
+    return axios.patch(`${BASE_URL}/${id}`, novelData, {
+      headers: { "Content-Type": "application/json" },
+    });
   },
 
   getNovelCount: async () => {
