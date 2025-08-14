@@ -281,3 +281,56 @@ body {
 input::placeholder {
   color: #222;
 }
+
+/* Dark Mode Styles */
+.dark-mode {
+  background: #181a20 !important;
+  color: #f7f7fb !important;
+}
+
+.dark-mode .app-header {
+  background: linear-gradient(90deg, #222 0%, #333 100%) !important;
+  color: #f7f7fb !important;
+}
+
+.dark-mode .main-content {
+  background: #181a20 !important;
+  color: #f7f7fb !important;
+}
+
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea {
+  background: #222 !important;
+  color: #f7f7fb !important;
+  border: 1px solid #2980b9 !important;
+}
+
+.dark-mode table,
+.dark-mode .library-table {
+  background: #222 !important;
+  color: #f7f7fb !important;
+}
+
+.dark-mode th,
+.dark-mode td {
+  background: #222 !important;
+  color: #f7f7fb !important;
+}
+
+.dark-mode a {
+  color: #6ec6ff !important;
+}
+
+.dark-mode button {
+  background: #2980b9 !important;
+  color: #fff !important;
+}
+
+.dark-mode .library-table-container {
+  background: #181a20 !important;
+}
+
+.dark-mode .library-table tr {
+  border-bottom: 1px solid #333 !important;
+}

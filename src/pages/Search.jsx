@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { novelApi } from "../services/novelApi";
 
-function Search() {
+function Search({ darkMode }) {
   const [novels, setNovels] = useState([]);
   const [search, setSearch] = useState("");
   const [genre, setGenre] = useState("");
@@ -33,7 +33,13 @@ function Search() {
 
   return (
     <div
-      style={{ padding: "32px 0", background: "#f7f7fb", minHeight: "100vh" }}
+      className={darkMode ? "dark-mode" : ""}
+      style={{
+        padding: "32px 0",
+        background: darkMode ? "#181a20" : "#f7f7fb",
+        minHeight: "100vh",
+        color: darkMode ? "#f7f7fb" : "#222",
+      }}
     >
       <div
         style={{

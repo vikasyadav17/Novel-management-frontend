@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { novelApi } from "../services/novelApi";
 
-function Library() {
+function Library({ darkMode }) {
   const [novels, setNovels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -172,7 +172,9 @@ function Library() {
     else if (error) content = <div>{error}</div>;
     else {
       content = (
-        <div className="library-table-container">
+        <div
+          className={`library-table-container${darkMode ? " dark-mode" : ""}`}
+        >
           <table className="library-table">
             <thead>
               <tr>

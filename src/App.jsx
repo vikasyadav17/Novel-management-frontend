@@ -8,6 +8,7 @@ import "./App.css";
 
 function App() {
   const [error, setError] = useState(null);
+  const [darkMode, setDarkMode] = useState(false);
 
   const handleAddNovel = async (newNovel) => {
     try {
@@ -21,13 +22,18 @@ function App() {
 
   return (
     <Router>
-      <div className="app-container">
+      <div className={`app-container${darkMode ? " dark-mode" : ""}`}>
         <header
           className="app-header"
           style={{
-            background: "linear-gradient(90deg, #eaf6ff 0%, #dde6f7 100%)",
+            background: darkMode
+              ? "linear-gradient(90deg, #222 0%, #333 100%)"
+              : "linear-gradient(90deg, #eaf6ff 0%, #dde6f7 100%)",
+            color: darkMode ? "#f7f7fb" : "#222",
             padding: "32px 0 24px 0",
-            boxShadow: "0 2px 12px rgba(41,128,185,0.06)",
+            boxShadow: darkMode
+              ? "0 2px 12px rgba(41,128,185,0.18)"
+              : "0 2px 12px rgba(41,128,185,0.06)",
             marginBottom: "32px",
             borderRadius: "0 0 32px 32px",
           }}
@@ -42,6 +48,7 @@ function App() {
               padding: "0 32px",
             }}
           >
+            {/* Left: Logo + Title */}
             <div style={{ display: "flex", alignItems: "center" }}>
               <span style={{ marginRight: "14px" }}>
                 <svg width="48" height="48" viewBox="0 0 48 48">
@@ -95,7 +102,8 @@ function App() {
                 </h1>
               </Link>
             </div>
-            <nav>
+            {/* Right: Navigation */}
+            <nav style={{ display: "flex", alignItems: "center" }}>
               <Link
                 to="/"
                 style={{
@@ -163,6 +171,33 @@ function App() {
           </Routes>
           {error && <div>{error}</div>}
         </main>
+        {/* Dark mode toggle button at bottom right */}
+        <button
+          onClick={() => setDarkMode((d) => !d)}
+          style={{
+            position: "fixed",
+            right: "32px",
+            bottom: "32px",
+            padding: "0",
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            border: "none",
+            background: darkMode ? "#2980b9" : "#eaf6ff",
+            color: darkMode ? "#fff" : "#222",
+            fontSize: "1.4rem", // smaller icon
+            boxShadow: "0 2px 12px rgba(41,128,185,0.12)",
+            cursor: "pointer",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "background 0.2s",
+          }}
+          title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {darkMode ? "🌙" : "☀️"}
+        </button>
       </div>
     </Router>
   );
