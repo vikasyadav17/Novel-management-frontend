@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { useState, useEffect, useContext } from "react";
 import { novelApi } from "../services/novelApi";
 import { ThemeContext } from "../context/ThemeContext";
+import swordGodImage from "../assets/images/sword_god.jpg"; // Updated path to image in assets/images
 import "./NovelDetails.css";
 
 function NovelDetails() {
@@ -108,17 +109,25 @@ function NovelDetails() {
       className={`novel-details ${darkMode ? "dark-mode" : ""}`}
       style={containerStyle}
     >
-      {/* Add image above original name */}
-      <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+      {/* Add image above original name with increased size */}
+      <div
+        style={{ textAlign: "center", marginBottom: "2.5rem", padding: "1rem" }}
+      >
         <img
-          src={novel.imageUrl || "https://via.placeholder.com/200x300"}
+          src={novel.imageUrl || swordGodImage} // Use sword_god image as default
           alt={`Cover of ${novel.name}`}
           style={{
-            maxWidth: "200px",
-            borderRadius: "8px",
+            maxWidth: "300px",
+            minHeight: "400px",
+            width: "100%",
+            height: "450px", // Fixed height to ensure consistent size
+            objectFit: "cover", // Changed from contain to cover to stretch and fill
+            borderRadius: "10px",
             boxShadow: darkMode
-              ? "0 4px 8px rgba(0, 0, 0, 0.5)"
-              : "0 4px 8px rgba(0, 0, 0, 0.2)",
+              ? "0 8px 16px rgba(0, 0, 0, 0.6)"
+              : "0 8px 16px rgba(0, 0, 0, 0.25)",
+            padding: "0.5rem",
+            backgroundColor: darkMode ? "#1a1a1a" : "#f8f8f8",
           }}
         />
       </div>
