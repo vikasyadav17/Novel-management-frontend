@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-# Novel-management-frontend
-front of the novel management app
-=======
 # Novel Library
 
 A web application for managing and browsing a collection of novels.  
@@ -63,4 +59,3 @@ Make sure your backend API is running and accessible.
 - Modify styles in `src/App.css` for custom look and feel.
 
 ## License
->>>>>>> master
