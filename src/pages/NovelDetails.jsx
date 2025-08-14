@@ -108,12 +108,38 @@ function NovelDetails() {
       className={`novel-details ${darkMode ? "dark-mode" : ""}`}
       style={containerStyle}
     >
-      <h1 style={headingStyle}>{novel.name}</h1>
-
-      <div style={{ marginBottom: "1.5rem" }}>
-        <strong style={labelStyle}>Original Name:</strong>
-        <span style={textStyle}>{novel.originalName || "N/A"}</span>
+      {/* Add image above original name */}
+      <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+        <img
+          src={novel.imageUrl || "https://via.placeholder.com/200x300"}
+          alt={`Cover of ${novel.name}`}
+          style={{
+            maxWidth: "200px",
+            borderRadius: "8px",
+            boxShadow: darkMode
+              ? "0 4px 8px rgba(0, 0, 0, 0.5)"
+              : "0 4px 8px rgba(0, 0, 0, 0.2)",
+          }}
+        />
       </div>
+
+      {novel.originalName && (
+        <div
+          style={{
+            ...textStyle,
+            fontSize: "1.2rem",
+            marginBottom: "0.5rem",
+            color: darkMode ? "#aaaaaa" : "#666666",
+            fontStyle: "italic",
+            textAlign: "center",
+            fontWeight: "bold",
+          }}
+        >
+          {novel.originalName}
+        </div>
+      )}
+
+      <h1 style={headingStyle}>{novel.name}</h1>
 
       <div style={{ marginBottom: "1.5rem" }}>
         <strong style={labelStyle}>Genre:</strong>
