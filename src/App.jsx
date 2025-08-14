@@ -22,7 +22,7 @@ function App() {
     <Router>
       <div className="app-container">
         <header className="app-header">
-          <h1>📚 Novel Library</h1>
+          <h1>📚 Novel Updates</h1>
           <nav>
             <Link to="/">Home</Link> | <Link to="/library">Library</Link>
           </nav>

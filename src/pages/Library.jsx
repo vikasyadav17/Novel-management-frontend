@@ -22,6 +22,10 @@ function Library() {
   const [renderError, setRenderError] = useState(null);
 
   useEffect(() => {
+    document.title = "Novel Updates";
+  }, []);
+
+  useEffect(() => {
     loadNovels();
   }, []);
 
