@@ -1,0 +1,155 @@
+body {
+  overflow-x: hidden;
+}
+
+.app-container {
+  min-height: 100vh;
+  width: 100vw; /* Use full viewport width */
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 2rem;
+  box-sizing: border-box; /* Ensure padding doesn't cause overflow */
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.app-header h1 {
+  color: #2c3e50;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.main-content {
+  width: 100%;
+  margin: 0;
+  padding: 0 1rem;
+  box-sizing: border-box; /* Add this for consistency */
+}
+
+.novels-grid {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  flex-wrap: wrap; /* Ensure cards wrap to next line */
+  padding: 2rem 0;
+  width: 100%;
+  box-sizing: border-box;
+  justify-content: flex-start;
+}
+
+/* Card Styles */
+.novel-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.novel-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.novel-card h3 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.novel-card p {
+  color: #666;
+  margin: 0.5rem 0;
+}
+
+/* Horizontal Card Styles */
+.novel-card.novel-card-horizontal {
+  display: block;
+  min-width: 600px;
+  max-width: 100%;
+  margin-bottom: 1rem;
+}
+
+.novel-card-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.novel-card-row > div {
+  font-size: 1rem;
+  color: #2c3e50;
+  padding: 0.5rem 0;
+}
+
+.novel-card-row strong {
+  color: #2980b9;
+  margin-right: 0.25rem;
+}
+
+/* Form Styles */
+.novel-form {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  max-width: 600px; /* Add this line */
+  margin-left: auto; /* Add this line */
+  margin-right: auto; /* Add this line */
+}
+
+.novel-form input,
+.novel-form select,
+.novel-form textarea {
+  width: 100%;
+  padding: 0.8rem;
+  margin: 0.5rem 0 1rem 0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: #f5f7fa;
+  color: #2c3e50;
+  box-sizing: border-box;
+  transition: border 0.2s;
+}
+
+.novel-form input:focus,
+.novel-form textarea:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+.novel-form label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.novel-form input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-left: 0.5rem;
+  accent-color: #3498db;
+}
+
+.novel-form button {
+  background: #3498db;
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.2s ease;
+}
+
+.novel-form button:hover {
+  background: #2980b9;
+}
