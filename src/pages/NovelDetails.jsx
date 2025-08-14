@@ -11,6 +11,8 @@ function NovelDetails() {
   const [novel, setNovel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // Add favorite state
+  const [isFavorite, setIsFavorite] = useState(false);
 
   // Force re-render when darkMode changes
   const [_, forceUpdate] = useState({});
@@ -26,6 +28,12 @@ function NovelDetails() {
       try {
         const response = await novelApi.getNovelById(id);
         setNovel(response.data);
+
+        // Check if novel is favorite from localStorage
+        const favorites = JSON.parse(
+          localStorage.getItem("favoriteNovels") || "[]"
+        );
+        setIsFavorite(favorites.includes(response.data._id));
       } catch (err) {
         setError("Failed to load novel details.");
       } finally {
@@ -34,6 +42,32 @@ function NovelDetails() {
     };
     fetchNovel();
   }, [id]);
+
+  // Function to toggle favorite status
+  const toggleFavorite = () => {
+    const newFavoriteStatus = !isFavorite;
+    setIsFavorite(newFavoriteStatus);
+
+    // Update localStorage
+    const favorites = JSON.parse(
+      localStorage.getItem("favoriteNovels") || "[]"
+    );
+    if (newFavoriteStatus) {
+      // Add to favorites if not already there
+      if (!favorites.includes(novel._id)) {
+        localStorage.setItem(
+          "favoriteNovels",
+          JSON.stringify([...favorites, novel._id])
+        );
+      }
+    } else {
+      // Remove from favorites
+      localStorage.setItem(
+        "favoriteNovels",
+        JSON.stringify(favorites.filter((favId) => favId !== novel._id))
+      );
+    }
+  };
 
   // Apply dark mode to the entire component container
   const containerStyle = {
@@ -47,6 +81,7 @@ function NovelDetails() {
     maxWidth: "900px",
     margin: "2rem auto",
     transition: "all 0.3s ease",
+    position: "relative", // Add position relative so absolute positioning works inside
   };
 
   // Apply dark mode to text elements
@@ -147,6 +182,42 @@ function NovelDetails() {
       className={`novel-details ${darkMode ? "dark-mode" : ""}`}
       style={containerStyle}
     >
+      {/* Updated bookmark icon to match the flag with star design */}
+      <div
+        className="bookmark-icon"
+        onClick={toggleFavorite}
+        style={{
+          position: "absolute",
+          top: "1rem",
+          right: "1rem",
+          cursor: "pointer",
+          zIndex: 10,
+          transition: "all 0.2s ease",
+        }}
+      >
+        <svg
+          width="32"
+          height="40"
+          viewBox="0 0 32 40"
+          fill={isFavorite ? "#000000" : "none"}
+          stroke={darkMode ? "#ffffff" : "#333333"}
+          strokeWidth="1.5"
+          style={{
+            transition: "all 0.3s ease",
+          }}
+        >
+          {/* Flag/bookmark shape */}
+          <path d="M2 2V38L16 30L30 38V2H2Z" />
+
+          {/* Star in the middle */}
+          <path
+            d="M16 7L18.5 12.5L24.5 13L20 17L21.5 23L16 20L10.5 23L12 17L7.5 13L13.5 12.5L16 7Z"
+            fill={isFavorite ? "#ffffff" : "none"}
+            stroke={isFavorite ? "none" : darkMode ? "#ffffff" : "#333333"}
+          />
+        </svg>
+      </div>
+
       {/* Add image above original name with increased size */}
       <div
         style={{ textAlign: "center", marginBottom: "2.5rem", padding: "1rem" }}
@@ -188,7 +259,8 @@ function NovelDetails() {
 
       <h1 style={headingStyle}>{novel.name}</h1>
 
-      <div style={{ marginBottom: "1.5rem" }}>
+      {/* All novel information without section headers */}
+      <div style={{ marginBottom: "1rem" }}>
         <strong style={labelStyle}>Genre:</strong>
         <span
           style={{
@@ -203,26 +275,74 @@ function NovelDetails() {
         </span>
       </div>
 
-      {/* Add tags section - handling as a string */}
-      {novel.tags && novel.tags.trim() !== "" && (
-        <div style={{ marginBottom: "1.5rem" }}>
-          <strong style={labelStyle}>Tags:</strong>
-          <span
-            style={{
-              ...textStyle,
-              backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
-              padding: "0.25rem 0.75rem",
-              borderRadius: "20px",
-              fontSize: "0.95rem",
-              marginLeft: "8px",
-            }}
-          >
-            {novel.tags}
-          </span>
+      {/* Author information */}
+      {novel.author && (
+        <div style={{ marginBottom: "1rem" }}>
+          <strong style={labelStyle}>Author:</strong>
+          <span style={textStyle}>{novel.author}</span>
         </div>
       )}
 
-      <div style={{ marginBottom: "2rem" }}>
+      {/* Status information */}
+      {novel.status && (
+        <div style={{ marginBottom: "1rem" }}>
+          <strong style={labelStyle}>Status:</strong>
+          <span style={textStyle}>{novel.status}</span>
+        </div>
+      )}
+
+      {/* Release year */}
+      {novel.releaseYear && (
+        <div style={{ marginBottom: "1rem" }}>
+          <strong style={labelStyle}>Released:</strong>
+          <span style={textStyle}>{novel.releaseYear}</span>
+        </div>
+      )}
+
+      {/* Tags section */}
+      {novel.tags && novel.tags.trim() !== "" && (
+        <div style={{ marginBottom: "1rem" }}>
+          <strong style={labelStyle}>Tags:</strong>
+          <div
+            style={{
+              display: "inline-flex",
+              flexWrap: "wrap",
+              gap: "0.5rem",
+            }}
+          >
+            {novel.tags.split(",").map((tag, index) => (
+              <span
+                key={index}
+                style={{
+                  ...textStyle,
+                  backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
+                  padding: "0.25rem 0.75rem",
+                  borderRadius: "20px",
+                  fontSize: "0.95rem",
+                }}
+              >
+                {tag.trim()}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Link to novel */}
+      <div style={{ marginBottom: "1rem" }}>
+        <strong style={labelStyle}>Link:</strong>
+        <a
+          href={novel.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={linkStyle}
+        >
+          {novel.link}
+        </a>
+      </div>
+
+      {/* Description */}
+      <div style={{ marginBottom: "1.5rem" }}>
         <strong
           style={{
             ...labelStyle,
@@ -243,21 +363,200 @@ function NovelDetails() {
             borderLeft: darkMode ? "3px solid #61dafb" : "3px solid #0066cc",
           }}
         >
-          {novel.novelDetails?.description || "N/A"}
+          {novel.novelDetails?.description || "No description available"}
         </div>
       </div>
 
-      <div>
-        <strong style={labelStyle}>Link:</strong>
-        <a
-          href={novel.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={linkStyle}
-        >
-          {novel.link}
-        </a>
-      </div>
+      {/* Chapters */}
+      {novel.novelDetails?.chapters && (
+        <div style={{ marginBottom: "1rem" }}>
+          <strong style={labelStyle}>Chapters:</strong>
+          <span style={textStyle}>{novel.novelDetails.chapters}</span>
+        </div>
+      )}
+
+      {/* Word Count */}
+      {novel.novelDetails?.wordCount && (
+        <div style={{ marginBottom: "1rem" }}>
+          <strong style={labelStyle}>Word Count:</strong>
+          <span style={textStyle}>
+            {typeof novel.novelDetails.wordCount === "number"
+              ? novel.novelDetails.wordCount.toLocaleString()
+              : novel.novelDetails.wordCount}
+          </span>
+        </div>
+      )}
+
+      {/* Publishing Frequency */}
+      {novel.novelDetails?.frequency && (
+        <div style={{ marginBottom: "1rem" }}>
+          <strong style={labelStyle}>Update Frequency:</strong>
+          <span style={textStyle}>{novel.novelDetails.frequency}</span>
+        </div>
+      )}
+
+      {/* Language */}
+      {novel.novelDetails?.language && (
+        <div style={{ marginBottom: "1rem" }}>
+          <strong style={labelStyle}>Language:</strong>
+          <span style={textStyle}>{novel.novelDetails.language}</span>
+        </div>
+      )}
+
+      {/* Overall Rating */}
+      {novel.novelDetails?.rating && (
+        <div style={{ marginBottom: "1rem" }}>
+          <strong style={labelStyle}>Overall Rating:</strong>
+          <span style={textStyle}>{novel.novelDetails.rating}/10</span>
+        </div>
+      )}
+
+      {/* Story Rating */}
+      {novel.novelDetails?.storyRating && (
+        <div style={{ marginBottom: "1rem" }}>
+          <strong style={labelStyle}>Story Rating:</strong>
+          <span style={textStyle}>{novel.novelDetails.storyRating}/10</span>
+        </div>
+      )}
+
+      {/* Character Rating */}
+      {novel.novelDetails?.characterRating && (
+        <div style={{ marginBottom: "1rem" }}>
+          <strong style={labelStyle}>Character Rating:</strong>
+          <span style={textStyle}>{novel.novelDetails.characterRating}/10</span>
+        </div>
+      )}
+
+      {/* Writing Quality Rating */}
+      {novel.novelDetails?.writingRating && (
+        <div style={{ marginBottom: "1rem" }}>
+          <strong style={labelStyle}>Writing Quality:</strong>
+          <span style={textStyle}>{novel.novelDetails.writingRating}/10</span>
+        </div>
+      )}
+
+      {/* Personal Rating - updated to use the correct field name */}
+      {novel.novelOpinion?.rating !== undefined && (
+        <div style={{ marginBottom: "1rem" }}>
+          <strong style={labelStyle}>My Rating:</strong>
+          <span style={textStyle}>{novel.novelOpinion.rating}/5</span>
+        </div>
+      )}
+
+      {/* Chapters Read - new field from screenshot */}
+      {novel.novelOpinion?.chaptersRead !== undefined && (
+        <div style={{ marginBottom: "1rem" }}>
+          <strong style={labelStyle}>Chapters Read:</strong>
+          <span style={textStyle}>{novel.novelOpinion.chaptersRead}</span>
+        </div>
+      )}
+
+      {/* Worth To Continue - new field from screenshot */}
+      {novel.novelOpinion?.worthToContinue !== undefined && (
+        <div style={{ marginBottom: "1rem" }}>
+          <strong style={labelStyle}>Worth To Continue:</strong>
+          <span style={textStyle}>
+            {novel.novelOpinion.worthToContinue ? "Yes" : "No"}
+          </span>
+        </div>
+      )}
+
+      {/* Chapters Frequency - new field from screenshot */}
+      {novel.novelOpinion?.chaptersFrequency && (
+        <div style={{ marginBottom: "1rem" }}>
+          <strong style={labelStyle}>Chapters Frequency:</strong>
+          <span style={textStyle}>{novel.novelOpinion.chaptersFrequency}</span>
+        </div>
+      )}
+
+      {/* Display all other opinion fields that aren't already shown */}
+      {novel.novelOpinion &&
+        Object.entries(novel.novelOpinion).map(([key, value]) => {
+          // Skip fields we've already explicitly handled and any ID fields
+          if (
+            [
+              "rating",
+              "chaptersRead",
+              "favorite",
+              "worthToContinue",
+              "chaptersFrequency",
+            ].includes(key) ||
+            key === "_id" ||
+            key === "id" ||
+            key.toLowerCase().includes("id") // Skip any field containing 'id'
+          ) {
+            return null;
+          }
+
+          // Format the key name for display (capitalize, replace underscores with spaces)
+          const formattedKey = key
+            .replace(/([A-Z])/g, " $1") // Insert space before capital letters
+            .replace(/_/g, " ") // Replace underscores with spaces
+            .replace(/^\w/, (c) => c.toUpperCase()); // Capitalize first letter
+
+          // Handle different value types
+          let displayValue;
+          if (typeof value === "boolean") {
+            displayValue = value ? "Yes" : "No";
+          } else if (value === null || value === undefined) {
+            displayValue = "N/A";
+          } else if (typeof value === "object") {
+            // For object values, convert to JSON string but remove any ID fields
+            const sanitizedValue = { ...value };
+            if (typeof sanitizedValue === "object" && sanitizedValue !== null) {
+              // Remove ID fields from objects
+              ["_id", "id", "novelId"].forEach((idField) => {
+                if (idField in sanitizedValue) {
+                  delete sanitizedValue[idField];
+                }
+              });
+            }
+            displayValue = JSON.stringify(sanitizedValue, null, 2);
+          } else {
+            displayValue = value.toString();
+          }
+
+          // Determine if this should be a long-form field (for text that might be lengthy)
+          const isLongForm = typeof value === "string" && value.length > 100;
+
+          if (isLongForm) {
+            return (
+              <div key={key} style={{ marginBottom: "1.5rem" }}>
+                <strong
+                  style={{
+                    ...labelStyle,
+                    display: "block",
+                    marginBottom: "0.75rem",
+                  }}
+                >
+                  {formattedKey}:
+                </strong>
+                <div
+                  style={{
+                    ...textStyle,
+                    padding: "1rem",
+                    backgroundColor: darkMode
+                      ? "rgba(255,255,255,0.05)"
+                      : "rgba(0,0,0,0.02)",
+                    borderRadius: "8px",
+                    borderLeft: darkMode
+                      ? "3px solid #61dafb"
+                      : "3px solid #0066cc",
+                  }}
+                >
+                  {displayValue}
+                </div>
+              </div>
+            );
+          } else {
+            return (
+              <div key={key} style={{ marginBottom: "1rem" }}>
+                <strong style={labelStyle}>{formattedKey}:</strong>
+                <span style={textStyle}>{displayValue}</span>
+              </div>
+            );
+          }
+        })}
     </div>
   );
 }
