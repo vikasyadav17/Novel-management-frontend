@@ -4,6 +4,7 @@ import { novelApi } from "../services/novelApi";
 import { ThemeContext } from "../context/ThemeContext";
 import swordGodImage from "../assets/images/sword_god.jpg";
 import "./NovelDetails.css";
+import moment from "moment";
 
 function NovelDetails() {
   const { id } = useParams();
@@ -344,31 +345,11 @@ function NovelDetails() {
     boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
   };
 
-  // Helper function to format dates in DD MMM YYYY format with spaces
+  // Helper function to format dates using moment
   const formatDate = (dateString) => {
+    console.log(dateString);
     if (!dateString) return "";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Invalid Date";
-
-    const day = date.getDate().toString().padStart(2, "0");
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    const month = months[date.getMonth()];
-    const year = date.getFullYear();
-
-    return `${day} ${month} ${year}`; // Added spaces between components
+    return moment(dateString).format("DD MMM YYYY");
   };
 
   if (loading)
@@ -585,9 +566,40 @@ function NovelDetails() {
             }}
           />
         ) : (
-          <h1 style={{ ...headingStyle, marginBottom: "1.5rem" }}>
+          <h1 style={{ ...headingStyle, marginBottom: "1rem" }}>
             {novel.name}
           </h1>
+        )}
+
+        {/* Personal Rating - show stars under name */}
+        {novel.novelOpinion?.rating >= 0 && (
+          <div style={{ marginBottom: "1.5rem", textAlign: "center" }}>
+            {[...Array(5)].map((_, i) => (
+              <span
+                key={i}
+                style={{
+                  color:
+                    i < novel.novelOpinion.rating
+                      ? "#FFD700" // Golden color for filled stars
+                      : darkMode
+                      ? "rgba(255, 215, 0, 0.3)" // More visible transparent golden for dark mode
+                      : "rgba(255, 215, 0, 0.4)", // More visible transparent golden for light mode
+                  fontSize: "2rem", // Increased size
+                  marginRight: "8px", // Increased spacing
+                  textShadow:
+                    i < novel.novelOpinion.rating
+                      ? "0 0 8px rgba(255, 215, 0, 0.6)"
+                      : "none",
+                  filter:
+                    i < novel.novelOpinion.rating
+                      ? "drop-shadow(0 0 4px rgba(255, 215, 0, 0.8))"
+                      : "none",
+                }}
+              >
+                ★
+              </span>
+            ))}
+          </div>
         )}
       </div>
 
@@ -602,8 +614,7 @@ function NovelDetails() {
             marginBottom: "2rem",
           }}
         >
-          {/* Only include fields that exist in your data model */}
-          {/* If genre exists */}
+          {/* Genre field */}
           {(novel.genre || isEditing) && (
             <div>
               <strong style={labelStyle}>Genre:</strong>
@@ -634,12 +645,15 @@ function NovelDetails() {
           {/* Show all fields from novel.novelDetails */}
           {novel.novelDetails &&
             Object.entries(novel.novelDetails).map(([key, value]) => {
-              // Skip if value is empty or it's an ID field
+              // Skip if value is empty, it's an ID field, or special fields
               if (
                 !value ||
                 key === "_id" ||
                 key === "id" ||
-                key.toLowerCase().includes("id")
+                key.toLowerCase().includes("id") ||
+                key === "addedOn" ||
+                key === "lastUpdatedOn" ||
+                key === "description"
               ) {
                 return null;
               }
@@ -650,12 +664,7 @@ function NovelDetails() {
                 .replace(/_/g, " ")
                 .replace(/^\w/, (c) => c.toUpperCase());
 
-              // Special handling for description since it's longer
-              if (key === "description") {
-                return null; // We'll render description separately
-              }
-
-              // For ratings, show with stars if applicable
+              // For ratings, show with stars
               if (key.toLowerCase().includes("rating")) {
                 return (
                   <div key={key}>
@@ -713,16 +722,17 @@ function NovelDetails() {
               );
             })}
 
-          {/* Show all fields from novel.novelOpinion */}
+          {/* Show all fields from novel.novelOpinion (except rating) */}
           {novel.novelOpinion &&
             Object.entries(novel.novelOpinion).map(([key, value]) => {
-              // Skip if value is empty or it's an ID field or we've already handled it
+              // Skip if value is empty, it's an ID field, or it's the rating
               if (
                 value === undefined ||
                 value === null ||
                 key === "_id" ||
                 key === "id" ||
-                key.toLowerCase().includes("id")
+                key.toLowerCase().includes("id") ||
+                key === "rating" // Skip rating as it's now shown under the title
               ) {
                 return null;
               }
@@ -732,50 +742,6 @@ function NovelDetails() {
                 .replace(/([A-Z])/g, " $1")
                 .replace(/_/g, " ")
                 .replace(/^\w/, (c) => c.toUpperCase());
-
-              // Handle special rating with stars
-              if (key === "rating") {
-                return (
-                  <div key={key}>
-                    <strong style={labelStyle}>Personal Rating:</strong>
-                    <div
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                      }}
-                    >
-                      <span style={textStyle}>{value}/5</span>
-                      <div
-                        style={{
-                          marginLeft: "0.5rem",
-                          display: "inline-flex",
-                          alignItems: "center",
-                        }}
-                      >
-                        {[...Array(5)].map((_, i) => (
-                          <span
-                            key={i}
-                            style={{
-                              color:
-                                i < value
-                                  ? darkMode
-                                    ? "#FFC107"
-                                    : "#FFA000"
-                                  : darkMode
-                                  ? "#444"
-                                  : "#ddd",
-                              marginRight: "2px",
-                              fontSize: "1.1rem",
-                            }}
-                          >
-                            ★
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
 
               // For boolean values like worthToContinue
               if (typeof value === "boolean") {
@@ -810,8 +776,7 @@ function NovelDetails() {
               );
             })}
 
-          {/* Only include fields that exist in your data model */}
-          {/* If mcName exists */}
+          {/* Main Character (mcName) */}
           {novel.mcName && (
             <div>
               <strong style={labelStyle}>Main Character:</strong>
@@ -829,7 +794,7 @@ function NovelDetails() {
             </div>
           )}
 
-          {/* If specialCharacteristicOfMc exists */}
+          {/* MC Trait */}
           {novel.specialCharacteristicOfMc && (
             <div>
               <strong style={labelStyle}>MC Trait:</strong>
@@ -852,25 +817,28 @@ function NovelDetails() {
             </div>
           )}
 
-          {/* Keep any system fields read-only */}
-          {/* Added On date - read-only */}
-          {novel.addedOn && (
+          {/* Added On date */}
+          {novel.novelDetails?.addedOn && (
             <div>
               <strong style={labelStyle}>Added On:</strong>
-              <span style={textStyle}>{formatDate(novel.addedOn)}</span>
+              <span style={textStyle}>
+                {formatDate(novel.novelDetails.addedOn)}
+              </span>
             </div>
           )}
 
-          {/* Last Updated date - read-only */}
-          {novel.lastUpdatedOn && (
+          {/* Last Updated date */}
+          {novel.novelDetails?.lastUpdatedOn && (
             <div>
               <strong style={labelStyle}>Last Updated:</strong>
-              <span style={textStyle}>{formatDate(novel.lastUpdatedOn)}</span>
+              <span style={textStyle}>
+                {formatDate(novel.novelDetails.lastUpdatedOn)}
+              </span>
             </div>
           )}
         </div>
 
-        {/* Tags section - editable */}
+        {/* Tags section */}
         {(novel.tags || isEditing) && (
           <div style={{ marginBottom: "1.5rem" }}>
             <strong
@@ -923,7 +891,7 @@ function NovelDetails() {
           </div>
         )}
 
-        {/* Link to novel - editable */}
+        {/* Link to novel */}
         <div style={{ marginBottom: "1.5rem" }}>
           <strong style={labelStyle}>Link:</strong>
           {isEditing ? (
@@ -963,7 +931,7 @@ function NovelDetails() {
           )}
         </div>
 
-        {/* Description - Add proper rendering */}
+        {/* Description */}
         {novel.novelDetails?.description && (
           <div style={{ marginBottom: "1.5rem" }}>
             <strong
@@ -987,7 +955,7 @@ function NovelDetails() {
                   ? "4px solid #61dafb"
                   : "4px solid #0066cc",
                 lineHeight: "1.9",
-                whiteSpace: "pre-wrap", // Preserve line breaks
+                whiteSpace: "pre-wrap",
               }}
             >
               {novel.novelDetails.description}
@@ -1144,7 +1112,7 @@ function NovelDetails() {
           fontSize: "0.9rem",
         }}
       >
-        Last updated: {formatDate(new Date())}
+        Last updated: {formatDate(novel.novelDetails.lastUpdatedOn)}
       </div>
     </div>
   );
