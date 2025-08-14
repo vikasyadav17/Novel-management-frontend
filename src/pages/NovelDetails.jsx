@@ -11,8 +11,13 @@ function NovelDetails() {
   const [novel, setNovel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // Add favorite state
   const [isFavorite, setIsFavorite] = useState(false);
+
+  // Add editing state variables
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedValues, setEditedValues] = useState({});
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Force re-render when darkMode changes
   const [_, forceUpdate] = useState({});
@@ -196,6 +201,176 @@ function NovelDetails() {
     }
   }, [novel, loading]);
 
+  // Function to handle field changes
+  const handleFieldChange = (field, value) => {
+    setEditedValues({
+      ...editedValues,
+      [field]: value,
+    });
+  };
+
+  // Function to enter edit mode - include only fields that exist in your data model
+  const startEditing = () => {
+    setIsEditing(true);
+    // Initialize editedValues with only fields that exist in your data model
+    setEditedValues({
+      name: novel.name,
+      originalName: novel.originalName || "",
+      link: novel.link || "",
+      tags: novel.tags || "",
+      // Include these fields only if they exist in your data model
+      ...(novel.mcName !== undefined && { mcName: novel.mcName || "" }),
+      ...(novel.specialCharacteristicOfMc !== undefined && {
+        specialCharacteristicOfMc: novel.specialCharacteristicOfMc || "",
+      }),
+      // Remove author, status, and releaseYear if they don't exist in your model
+    });
+  };
+
+  // Function to cancel editing
+  const cancelEditing = () => {
+    setIsEditing(false);
+    setEditedValues({});
+  };
+
+  // Function to show the comparison modal
+  const showChanges = () => {
+    // Only proceed if there are actual changes
+    const hasChanges = Object.keys(editedValues).some(
+      (key) => editedValues[key] !== (novel[key] || "")
+    );
+
+    if (hasChanges) {
+      setShowComparisonModal(true);
+    } else {
+      alert("No changes detected");
+    }
+  };
+
+  // Function to save changes after confirmation
+  const saveChanges = async () => {
+    setIsSaving(true);
+    try {
+      // Only send fields that have changed
+      const changedFields = {};
+      Object.keys(editedValues).forEach((key) => {
+        if (editedValues[key] !== (novel[key] || "")) {
+          changedFields[key] = editedValues[key];
+        }
+      });
+
+      // Make the API call to update the novel
+      const response = await novelApi.updateNovel(novel._id, changedFields);
+
+      // Update the local state with the new values
+      setNovel({
+        ...novel,
+        ...changedFields,
+      });
+
+      // Exit edit mode and reset
+      setIsEditing(false);
+      setEditedValues({});
+      setShowComparisonModal(false);
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      alert("Failed to save changes");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Add style for edit button
+  const editButtonStyle = {
+    position: "absolute",
+    top: "1.25rem",
+    left: "1.25rem",
+    padding: "0.5rem 1rem",
+    backgroundColor: darkMode ? "#61dafb" : "#0066cc",
+    color: "white",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+    transition: "all 0.2s ease",
+    "&:hover": {
+      backgroundColor: darkMode ? "#50c8f0" : "#0055b0",
+      transform: "translateY(-2px)",
+    },
+  };
+
+  // Add style for input fields
+  const inputStyle = {
+    width: "100%",
+    padding: "0.5rem",
+    backgroundColor: darkMode ? "#2a2a2a" : "#f5f5f5",
+    border: darkMode ? "1px solid #444" : "1px solid #ddd",
+    borderRadius: "4px",
+    color: darkMode ? "#ffffff" : "#333333",
+    fontSize: "1rem",
+    transition: "all 0.2s ease",
+    "&:focus": {
+      outline: "none",
+      borderColor: darkMode ? "#61dafb" : "#0066cc",
+      boxShadow: `0 0 0 2px ${
+        darkMode ? "rgba(97, 218, 251, 0.2)" : "rgba(0, 102, 204, 0.2)"
+      }`,
+    },
+  };
+
+  // Modal styles
+  const modalOverlayStyle = {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  };
+
+  const modalContentStyle = {
+    backgroundColor: darkMode ? "#1a1a1a" : "#ffffff",
+    padding: "2rem",
+    borderRadius: "8px",
+    maxWidth: "800px",
+    width: "90%",
+    maxHeight: "80vh",
+    overflowY: "auto",
+    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+  };
+
+  // Helper function to format dates in DD MMM YYYY format with spaces
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Invalid Date";
+
+    const day = date.getDate().toString().padStart(2, "0");
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+
+    return `${day} ${month} ${year}`; // Added spaces between components
+  };
+
   if (loading)
     return (
       <div
@@ -236,7 +411,7 @@ function NovelDetails() {
       className={`novel-details ${darkMode ? "dark-mode" : ""}`}
       style={containerStyle}
     >
-      {/* Add a beautiful accent decoration to the top of the card */}
+      {/* Gradient decoration at top */}
       <div
         style={{
           position: "absolute",
@@ -251,7 +426,37 @@ function NovelDetails() {
         }}
       ></div>
 
-      {/* Updated bookmark icon */}
+      {/* Add Edit Button */}
+      {!isEditing ? (
+        <button onClick={startEditing} style={editButtonStyle}>
+          Edit
+        </button>
+      ) : (
+        <div
+          style={{
+            position: "absolute",
+            top: "1.25rem",
+            left: "1.25rem",
+            display: "flex",
+            gap: "0.5rem",
+          }}
+        >
+          <button
+            onClick={cancelEditing}
+            style={{
+              ...editButtonStyle,
+              backgroundColor: darkMode ? "#444" : "#ccc",
+            }}
+          >
+            Cancel
+          </button>
+          <button onClick={showChanges} style={editButtonStyle}>
+            Review Changes
+          </button>
+        </div>
+      )}
+
+      {/* Bookmark icon */}
       <div
         className="bookmark-icon"
         onClick={toggleFavorite}
@@ -332,47 +537,62 @@ function NovelDetails() {
           />
         </div>
 
-        {novel.originalName && (
-          <div
+        {/* Original Name - editable */}
+        {isEditing ? (
+          <input
+            type="text"
+            value={editedValues.originalName || ""}
+            onChange={(e) => handleFieldChange("originalName", e.target.value)}
+            placeholder="Original Name (Optional)"
             style={{
-              ...textStyle,
-              fontSize: "1.2rem",
-              marginBottom: "0.75rem",
-              color: darkMode ? "#aaaaaa" : "#666666",
+              ...inputStyle,
+              textAlign: "center",
               fontStyle: "italic",
-              fontWeight: "bold",
+              marginBottom: "0.75rem",
+              fontSize: "1.2rem",
             }}
-          >
-            {novel.originalName}
-          </div>
+          />
+        ) : (
+          novel.originalName && (
+            <div
+              style={{
+                ...textStyle,
+                fontSize: "1.2rem",
+                marginBottom: "0.75rem",
+                color: darkMode ? "#aaaaaa" : "#666666",
+                fontStyle: "italic",
+                fontWeight: "bold",
+              }}
+            >
+              {novel.originalName}
+            </div>
+          )
         )}
 
-        <h1
-          style={{
-            ...headingStyle,
-            marginBottom: "1.5rem",
-            "&::after": {
-              content: "''",
-              display: "block",
-              width: "60px",
-              height: "4px",
-              backgroundColor: darkMode ? "#61dafb" : "#0066cc",
-              margin: "0.75rem auto 0",
-              borderRadius: "2px",
-            },
-          }}
-        >
-          {novel.name}
-        </h1>
+        {/* Novel Name - editable */}
+        {isEditing ? (
+          <input
+            type="text"
+            value={editedValues.name}
+            onChange={(e) => handleFieldChange("name", e.target.value)}
+            placeholder="Novel Name"
+            style={{
+              ...inputStyle,
+              textAlign: "center",
+              fontSize: "2rem",
+              fontWeight: "bold",
+              marginBottom: "1.5rem",
+            }}
+          />
+        ) : (
+          <h1 style={{ ...headingStyle, marginBottom: "1.5rem" }}>
+            {novel.name}
+          </h1>
+        )}
       </div>
 
       {/* All details in a single continuous section */}
-      <div
-        style={{
-          ...sectionStyle,
-          padding: "2rem",
-        }}
-      >
+      <div style={{ ...sectionStyle, padding: "2rem" }}>
         {/* Unified grid for all details */}
         <div
           style={{
@@ -382,262 +602,276 @@ function NovelDetails() {
             marginBottom: "2rem",
           }}
         >
-          {/* Genre information */}
-          <div>
-            <strong style={labelStyle}>Genre:</strong>
-            <span
-              style={{
-                ...textStyle,
-                backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
-                padding: "0.25rem 0.75rem",
-                borderRadius: "20px",
-                fontSize: "0.95rem",
-              }}
-            >
-              {novel.genre}
-            </span>
-          </div>
-
-          {/* Author information */}
-          {novel.author && (
+          {/* Only include fields that exist in your data model */}
+          {/* If genre exists */}
+          {(novel.genre || isEditing) && (
             <div>
-              <strong style={labelStyle}>Author:</strong>
-              <span style={textStyle}>{novel.author}</span>
+              <strong style={labelStyle}>Genre:</strong>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editedValues.genre || ""}
+                  onChange={(e) => handleFieldChange("genre", e.target.value)}
+                  placeholder="Genre"
+                  style={inputStyle}
+                />
+              ) : (
+                <span
+                  style={{
+                    ...textStyle,
+                    backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
+                    padding: "0.25rem 0.75rem",
+                    borderRadius: "20px",
+                    fontSize: "0.95rem",
+                  }}
+                >
+                  {novel.genre}
+                </span>
+              )}
             </div>
           )}
 
-          {/* Main Character Name - New field */}
+          {/* Show all fields from novel.novelDetails */}
+          {novel.novelDetails &&
+            Object.entries(novel.novelDetails).map(([key, value]) => {
+              // Skip if value is empty or it's an ID field
+              if (
+                !value ||
+                key === "_id" ||
+                key === "id" ||
+                key.toLowerCase().includes("id")
+              ) {
+                return null;
+              }
+
+              // Format the key name for display
+              const formattedKey = key
+                .replace(/([A-Z])/g, " $1")
+                .replace(/_/g, " ")
+                .replace(/^\w/, (c) => c.toUpperCase());
+
+              // Special handling for description since it's longer
+              if (key === "description") {
+                return null; // We'll render description separately
+              }
+
+              // For ratings, show with stars if applicable
+              if (key.toLowerCase().includes("rating")) {
+                return (
+                  <div key={key}>
+                    <strong style={labelStyle}>{formattedKey}:</strong>
+                    <div
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <span style={textStyle}>{value}/10</span>
+                      <div
+                        style={{
+                          marginLeft: "0.5rem",
+                          display: "inline-flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        {[...Array(5)].map((_, i) => (
+                          <span
+                            key={i}
+                            style={{
+                              color:
+                                i < Math.round(value / 2)
+                                  ? darkMode
+                                    ? "#61dafb"
+                                    : "#0066cc"
+                                  : darkMode
+                                  ? "#444"
+                                  : "#ddd",
+                              marginRight: "2px",
+                            }}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              // For all other values
+              return (
+                <div key={key}>
+                  <strong style={labelStyle}>{formattedKey}:</strong>
+                  <span style={textStyle}>
+                    {typeof value === "boolean"
+                      ? value
+                        ? "Yes"
+                        : "No"
+                      : value}
+                  </span>
+                </div>
+              );
+            })}
+
+          {/* Show all fields from novel.novelOpinion */}
+          {novel.novelOpinion &&
+            Object.entries(novel.novelOpinion).map(([key, value]) => {
+              // Skip if value is empty or it's an ID field or we've already handled it
+              if (
+                value === undefined ||
+                value === null ||
+                key === "_id" ||
+                key === "id" ||
+                key.toLowerCase().includes("id")
+              ) {
+                return null;
+              }
+
+              // Format the key name for display
+              const formattedKey = key
+                .replace(/([A-Z])/g, " $1")
+                .replace(/_/g, " ")
+                .replace(/^\w/, (c) => c.toUpperCase());
+
+              // Handle special rating with stars
+              if (key === "rating") {
+                return (
+                  <div key={key}>
+                    <strong style={labelStyle}>Personal Rating:</strong>
+                    <div
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <span style={textStyle}>{value}/5</span>
+                      <div
+                        style={{
+                          marginLeft: "0.5rem",
+                          display: "inline-flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        {[...Array(5)].map((_, i) => (
+                          <span
+                            key={i}
+                            style={{
+                              color:
+                                i < value
+                                  ? darkMode
+                                    ? "#FFC107"
+                                    : "#FFA000"
+                                  : darkMode
+                                  ? "#444"
+                                  : "#ddd",
+                              marginRight: "2px",
+                              fontSize: "1.1rem",
+                            }}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              // For boolean values like worthToContinue
+              if (typeof value === "boolean") {
+                return (
+                  <div key={key}>
+                    <strong style={labelStyle}>{formattedKey}:</strong>
+                    <span
+                      style={{
+                        ...textStyle,
+                        color: value
+                          ? darkMode
+                            ? "#4CAF50"
+                            : "#2E7D32"
+                          : darkMode
+                          ? "#F44336"
+                          : "#C62828",
+                        fontWeight: "600",
+                      }}
+                    >
+                      {value ? "Yes" : "No"}
+                    </span>
+                  </div>
+                );
+              }
+
+              // For all other values
+              return (
+                <div key={key}>
+                  <strong style={labelStyle}>{formattedKey}:</strong>
+                  <span style={textStyle}>{value}</span>
+                </div>
+              );
+            })}
+
+          {/* Only include fields that exist in your data model */}
+          {/* If mcName exists */}
           {novel.mcName && (
             <div>
               <strong style={labelStyle}>Main Character:</strong>
-              <span style={textStyle}>{novel.mcName}</span>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editedValues.mcName || ""}
+                  onChange={(e) => handleFieldChange("mcName", e.target.value)}
+                  placeholder="Main Character Name"
+                  style={inputStyle}
+                />
+              ) : (
+                <span style={textStyle}>{novel.mcName}</span>
+              )}
             </div>
           )}
 
-          {/* Special Characteristic Of MC - New field */}
+          {/* If specialCharacteristicOfMc exists */}
           {novel.specialCharacteristicOfMc && (
             <div>
               <strong style={labelStyle}>MC Trait:</strong>
-              <span style={textStyle}>{novel.specialCharacteristicOfMc}</span>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editedValues.specialCharacteristicOfMc || ""}
+                  onChange={(e) =>
+                    handleFieldChange(
+                      "specialCharacteristicOfMc",
+                      e.target.value
+                    )
+                  }
+                  placeholder="MC Trait"
+                  style={inputStyle}
+                />
+              ) : (
+                <span style={textStyle}>{novel.specialCharacteristicOfMc}</span>
+              )}
             </div>
           )}
 
-          {/* Status information */}
-          {novel.status && (
-            <div>
-              <strong style={labelStyle}>Status:</strong>
-              <span style={textStyle}>{novel.status}</span>
-            </div>
-          )}
-
-          {/* Release year */}
-          {novel.releaseYear && (
-            <div>
-              <strong style={labelStyle}>Released:</strong>
-              <span style={textStyle}>{novel.releaseYear}</span>
-            </div>
-          )}
-
-          {/* Added On date - New field */}
+          {/* Keep any system fields read-only */}
+          {/* Added On date - read-only */}
           {novel.addedOn && (
             <div>
               <strong style={labelStyle}>Added On:</strong>
-              <span style={textStyle}>
-                {new Date(novel.addedOn).toLocaleDateString()}
-              </span>
+              <span style={textStyle}>{formatDate(novel.addedOn)}</span>
             </div>
           )}
 
-          {/* Last Updated date - New field */}
+          {/* Last Updated date - read-only */}
           {novel.lastUpdatedOn && (
             <div>
               <strong style={labelStyle}>Last Updated:</strong>
-              <span style={textStyle}>
-                {new Date(novel.lastUpdatedOn).toLocaleDateString()}
-              </span>
-            </div>
-          )}
-
-          {/* Chapters */}
-          {novel.novelDetails?.chapters && (
-            <div>
-              <strong style={labelStyle}>Chapters:</strong>
-              <span style={textStyle}>{novel.novelDetails.chapters}</span>
-            </div>
-          )}
-
-          {/* Word Count */}
-          {novel.novelDetails?.wordCount && (
-            <div>
-              <strong style={labelStyle}>Word Count:</strong>
-              <span style={textStyle}>
-                {typeof novel.novelDetails.wordCount === "number"
-                  ? novel.novelDetails.wordCount.toLocaleString()
-                  : novel.novelDetails.wordCount}
-              </span>
-            </div>
-          )}
-
-          {/* Publishing Frequency */}
-          {novel.novelDetails?.frequency && (
-            <div>
-              <strong style={labelStyle}>Update Frequency:</strong>
-              <span style={textStyle}>{novel.novelDetails.frequency}</span>
-            </div>
-          )}
-
-          {/* Language */}
-          {novel.novelDetails?.language && (
-            <div>
-              <strong style={labelStyle}>Language:</strong>
-              <span style={textStyle}>{novel.novelDetails.language}</span>
-            </div>
-          )}
-
-          {/* Overall Rating */}
-          {novel.novelDetails?.rating && (
-            <div>
-              <strong style={labelStyle}>Rating:</strong>
-              <div style={{ display: "inline-flex", alignItems: "center" }}>
-                <span style={textStyle}>{novel.novelDetails.rating}/10</span>
-                <div
-                  style={{
-                    marginLeft: "0.5rem",
-                    display: "inline-flex",
-                    alignItems: "center",
-                  }}
-                >
-                  {[...Array(5)].map((_, i) => (
-                    <span
-                      key={i}
-                      style={{
-                        color:
-                          i < Math.round(novel.novelDetails.rating / 2)
-                            ? darkMode
-                              ? "#61dafb"
-                              : "#0066cc"
-                            : darkMode
-                            ? "#444"
-                            : "#ddd",
-                        marginRight: "2px",
-                      }}
-                    >
-                      ★
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Story Rating */}
-          {novel.novelDetails?.storyRating && (
-            <div>
-              <strong style={labelStyle}>Story Rating:</strong>
-              <span style={textStyle}>{novel.novelDetails.storyRating}/10</span>
-            </div>
-          )}
-
-          {/* Character Rating */}
-          {novel.novelDetails?.characterRating && (
-            <div>
-              <strong style={labelStyle}>Character Rating:</strong>
-              <span style={textStyle}>
-                {novel.novelDetails.characterRating}/10
-              </span>
-            </div>
-          )}
-
-          {/* Writing Quality Rating */}
-          {novel.novelDetails?.writingRating && (
-            <div>
-              <strong style={labelStyle}>Writing Quality:</strong>
-              <span style={textStyle}>
-                {novel.novelDetails.writingRating}/10
-              </span>
-            </div>
-          )}
-
-          {/* User's rating */}
-          {novel.novelOpinion?.rating !== undefined && (
-            <div>
-              <strong style={labelStyle}>Personal Rating:</strong>
-              <div style={{ display: "inline-flex", alignItems: "center" }}>
-                <span style={textStyle}>{novel.novelOpinion.rating}/5</span>
-                <div
-                  style={{
-                    marginLeft: "0.5rem",
-                    display: "inline-flex",
-                    alignItems: "center",
-                  }}
-                >
-                  {[...Array(5)].map((_, i) => (
-                    <span
-                      key={i}
-                      style={{
-                        color:
-                          i < novel.novelOpinion.rating
-                            ? darkMode
-                              ? "#FFC107"
-                              : "#FFA000"
-                            : darkMode
-                            ? "#444"
-                            : "#ddd",
-                        marginRight: "2px",
-                        fontSize: "1.1rem",
-                      }}
-                    >
-                      ★
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Chapters Read */}
-          {novel.novelOpinion?.chaptersRead !== undefined && (
-            <div>
-              <strong style={labelStyle}>Chapters Read:</strong>
-              <span style={textStyle}>{novel.novelOpinion.chaptersRead}</span>
-            </div>
-          )}
-
-          {/* Worth To Continue */}
-          {novel.novelOpinion?.worthToContinue !== undefined && (
-            <div>
-              <strong style={labelStyle}>Worth To Continue:</strong>
-              <span
-                style={{
-                  ...textStyle,
-                  color: novel.novelOpinion.worthToContinue
-                    ? darkMode
-                      ? "#4CAF50"
-                      : "#2E7D32"
-                    : darkMode
-                    ? "#F44336"
-                    : "#C62828",
-                  fontWeight: "600",
-                }}
-              >
-                {novel.novelOpinion.worthToContinue ? "Yes" : "No"}
-              </span>
-            </div>
-          )}
-
-          {/* Chapters Frequency */}
-          {novel.novelOpinion?.chaptersFrequency && (
-            <div>
-              <strong style={labelStyle}>Reading Frequency:</strong>
-              <span style={textStyle}>
-                {novel.novelOpinion.chaptersFrequency}
-              </span>
+              <span style={textStyle}>{formatDate(novel.lastUpdatedOn)}</span>
             </div>
           )}
         </div>
 
-        {/* Tags section */}
-        {novel.tags && novel.tags.trim() !== "" && (
+        {/* Tags section - editable */}
+        {(novel.tags || isEditing) && (
           <div style={{ marginBottom: "1.5rem" }}>
             <strong
               style={{
@@ -648,184 +882,258 @@ function NovelDetails() {
             >
               Tags:
             </strong>
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "0.5rem",
-              }}
-            >
-              {novel.tags.split(",").map((tag, index) => (
-                <span
-                  key={index}
+            {isEditing ? (
+              <textarea
+                value={editedValues.tags || ""}
+                onChange={(e) => handleFieldChange("tags", e.target.value)}
+                placeholder="Enter tags separated by commas"
+                style={{
+                  ...inputStyle,
+                  minHeight: "80px",
+                  resize: "vertical",
+                }}
+              />
+            ) : (
+              novel.tags &&
+              novel.tags.trim() !== "" && (
+                <div
                   style={{
-                    ...textStyle,
-                    backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
-                    padding: "0.25rem 0.75rem",
-                    borderRadius: "20px",
-                    fontSize: "0.95rem",
-                    transition: "all 0.2s ease",
-                    "&:hover": {
-                      backgroundColor: darkMode ? "#3a3a3a" : "#e0e0e0",
-                    },
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "0.5rem",
                   }}
                 >
-                  {tag.trim()}
-                </span>
-              ))}
-            </div>
+                  {novel.tags.split(",").map((tag, index) => (
+                    <span
+                      key={index}
+                      style={{
+                        ...textStyle,
+                        backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
+                        padding: "0.25rem 0.75rem",
+                        borderRadius: "20px",
+                        fontSize: "0.95rem",
+                      }}
+                    >
+                      {tag.trim()}
+                    </span>
+                  ))}
+                </div>
+              )
+            )}
           </div>
         )}
 
-        {/* Link to novel */}
+        {/* Link to novel - editable */}
         <div style={{ marginBottom: "1.5rem" }}>
           <strong style={labelStyle}>Link:</strong>
-          <a
-            href={novel.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              ...linkStyle,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.35rem",
-            }}
-          >
-            {novel.link}
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
+          {isEditing ? (
+            <input
+              type="url"
+              value={editedValues.link || ""}
+              onChange={(e) => handleFieldChange("link", e.target.value)}
+              placeholder="Novel URL"
+              style={inputStyle}
+            />
+          ) : (
+            <a
+              href={novel.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                ...linkStyle,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.35rem",
+              }}
             >
-              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
-              <path d="M15 3h6v6"></path>
-              <path d="M10 14L21 3"></path>
-            </svg>
-          </a>
+              {novel.link}
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
+                <path d="M15 3h6v6"></path>
+                <path d="M10 14L21 3"></path>
+              </svg>
+            </a>
+          )}
         </div>
 
-        {/* Description at the bottom for better readability */}
-        <div style={{ marginBottom: "1.5rem" }}>
-          <strong
-            style={{
-              ...labelStyle,
-              display: "block",
-              marginBottom: "0.75rem",
-            }}
-          >
-            Description:
-          </strong>
-          <div
-            style={{
-              ...textStyle,
-              padding: "1.25rem",
-              backgroundColor: darkMode
-                ? "rgba(255,255,255,0.03)"
-                : "rgba(0,0,0,0.01)",
-              borderRadius: "10px",
-              borderLeft: darkMode ? "4px solid #61dafb" : "4px solid #0066cc",
-              lineHeight: "1.9",
-            }}
-          >
-            {novel.novelDetails?.description || "No description available"}
+        {/* Description - Add proper rendering */}
+        {novel.novelDetails?.description && (
+          <div style={{ marginBottom: "1.5rem" }}>
+            <strong
+              style={{
+                ...labelStyle,
+                display: "block",
+                marginBottom: "0.75rem",
+              }}
+            >
+              Description:
+            </strong>
+            <div
+              style={{
+                ...textStyle,
+                padding: "1.25rem",
+                backgroundColor: darkMode
+                  ? "rgba(255,255,255,0.03)"
+                  : "rgba(0,0,0,0.01)",
+                borderRadius: "10px",
+                borderLeft: darkMode
+                  ? "4px solid #61dafb"
+                  : "4px solid #0066cc",
+                lineHeight: "1.9",
+                whiteSpace: "pre-wrap", // Preserve line breaks
+              }}
+            >
+              {novel.novelDetails.description}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Comparison Modal */}
+      {showComparisonModal && (
+        <div style={modalOverlayStyle}>
+          <div style={modalContentStyle}>
+            <h2
+              style={{
+                fontSize: "1.5rem",
+                marginBottom: "1.5rem",
+                color: darkMode ? "#61dafb" : "#0066cc",
+              }}
+            >
+              Review Changes
+            </h2>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "1rem",
+                marginBottom: "2rem",
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  padding: "0.5rem",
+                  backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
+                  borderRadius: "4px",
+                }}
+              >
+                Original Value
+              </div>
+              <div
+                style={{
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  padding: "0.5rem",
+                  backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
+                  borderRadius: "4px",
+                }}
+              >
+                New Value
+              </div>
+
+              {/* Display changed fields */}
+              {Object.keys(editedValues).map((key) => {
+                const originalValue = novel[key] || "";
+                const newValue = editedValues[key] || "";
+
+                // Only show fields that have changed
+                if (originalValue === newValue) return null;
+
+                // Format the key name for display
+                const formattedKey = key
+                  .replace(/([A-Z])/g, " $1")
+                  .replace(/_/g, " ")
+                  .replace(/^\w/, (c) => c.toUpperCase());
+
+                return (
+                  <React.Fragment key={key}>
+                    <div
+                      style={{
+                        gridColumn: "1 / span 2",
+                        fontWeight: "bold",
+                        marginTop: "1rem",
+                        color: darkMode ? "#61dafb" : "#0066cc",
+                      }}
+                    >
+                      {formattedKey}:
+                    </div>
+                    <div
+                      style={{
+                        padding: "0.5rem",
+                        backgroundColor: darkMode
+                          ? "rgba(255,255,255,0.03)"
+                          : "rgba(0,0,0,0.02)",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      {originalValue || <em style={{ opacity: 0.5 }}>Empty</em>}
+                    </div>
+                    <div
+                      style={{
+                        padding: "0.5rem",
+                        backgroundColor: darkMode
+                          ? "rgba(97, 218, 251, 0.1)"
+                          : "rgba(0, 102, 204, 0.05)",
+                        borderRadius: "4px",
+                        fontWeight: "500",
+                      }}
+                    >
+                      {newValue || <em style={{ opacity: 0.5 }}>Empty</em>}
+                    </div>
+                  </React.Fragment>
+                );
+              })}
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "1rem",
+              }}
+            >
+              <button
+                onClick={() => setShowComparisonModal(false)}
+                style={{
+                  padding: "0.5rem 1rem",
+                  backgroundColor: darkMode ? "#444" : "#ccc",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveChanges}
+                disabled={isSaving}
+                style={{
+                  padding: "0.5rem 1rem",
+                  backgroundColor: darkMode ? "#61dafb" : "#0066cc",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  opacity: isSaving ? 0.7 : 1,
+                }}
+              >
+                {isSaving ? "Saving..." : "Confirm Changes"}
+              </button>
+            </div>
           </div>
         </div>
-
-        {/* Display all other opinion fields that aren't already shown */}
-        {novel.novelOpinion &&
-          Object.entries(novel.novelOpinion).map(([key, value]) => {
-            // Skip fields we've already explicitly handled and any ID fields
-            if (
-              [
-                "rating",
-                "chaptersRead",
-                "favorite",
-                "worthToContinue",
-                "chaptersFrequency",
-              ].includes(key) ||
-              key === "_id" ||
-              key === "id" ||
-              key.toLowerCase().includes("id")
-            ) {
-              return null;
-            }
-
-            // Format the key name for display (capitalize, replace underscores with spaces)
-            const formattedKey = key
-              .replace(/([A-Z])/g, " $1") // Insert space before capital letters
-              .replace(/_/g, " ") // Replace underscores with spaces
-              .replace(/^\w/, (c) => c.toUpperCase()); // Capitalize first letter
-
-            // Handle different value types
-            let displayValue;
-            if (typeof value === "boolean") {
-              displayValue = value ? "Yes" : "No";
-            } else if (value === null || value === undefined) {
-              displayValue = "N/A";
-            } else if (typeof value === "object") {
-              // For object values, convert to JSON string but remove any ID fields
-              const sanitizedValue = { ...value };
-              if (
-                typeof sanitizedValue === "object" &&
-                sanitizedValue !== null
-              ) {
-                // Remove ID fields from objects
-                ["_id", "id", "novelId"].forEach((idField) => {
-                  if (idField in sanitizedValue) {
-                    delete sanitizedValue[idField];
-                  }
-                });
-              }
-              displayValue = JSON.stringify(sanitizedValue, null, 2);
-            } else {
-              displayValue = value.toString();
-            }
-
-            // Determine if this should be a long-form field (for text that might be lengthy)
-            const isLongForm = typeof value === "string" && value.length > 100;
-
-            if (isLongForm) {
-              return (
-                <div key={key} style={{ marginBottom: "1.5rem" }}>
-                  <strong
-                    style={{
-                      ...labelStyle,
-                      display: "block",
-                      marginBottom: "0.75rem",
-                    }}
-                  >
-                    {formattedKey}:
-                  </strong>
-                  <div
-                    style={{
-                      ...textStyle,
-                      padding: "1rem",
-                      backgroundColor: darkMode
-                        ? "rgba(255,255,255,0.05)"
-                        : "rgba(0,0,0,0.02)",
-                      borderRadius: "8px",
-                      borderLeft: darkMode
-                        ? "3px solid #61dafb"
-                        : "3px solid #0066cc",
-                    }}
-                  >
-                    {displayValue}
-                  </div>
-                </div>
-              );
-            } else {
-              return (
-                <div key={key} style={{ marginBottom: "1rem" }}>
-                  <strong style={labelStyle}>{formattedKey}:</strong>
-                  <span style={textStyle}>{displayValue}</span>
-                </div>
-              );
-            }
-          })}
-      </div>
+      )}
 
       {/* Footer */}
       <div
@@ -836,7 +1144,7 @@ function NovelDetails() {
           fontSize: "0.9rem",
         }}
       >
-        Last updated: {new Date().toLocaleDateString()}
+        Last updated: {formatDate(new Date())}
       </div>
     </div>
   );
