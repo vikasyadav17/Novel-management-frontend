@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { novelApi } from "../services/novelApi";
+import logger from "../utils/logger"; // Import the logger
 
 function Library({ darkMode }) {
   const [novels, setNovels] = useState([]);
@@ -30,10 +31,13 @@ function Library({ darkMode }) {
   }, []);
 
   const loadNovels = async () => {
+    logger.info("Loading novels...");
     try {
       const response = await novelApi.getAllNovels();
+      logger.info("Novels loaded successfully:", response.data);
       setNovels(response.data);
-    } catch {
+    } catch (err) {
+      logger.error("Failed to load novels:", err.message);
       setError("Failed to load novels");
     } finally {
       setLoading(false);
@@ -122,6 +126,7 @@ function Library({ darkMode }) {
   };
 
   const handleEditSave = async (id) => {
+    logger.info("Saving edits for novel ID:", id, "with data:", editData);
     try {
       const payload = {
         name: editData.name,
@@ -130,10 +135,7 @@ function Library({ darkMode }) {
         link: editData.link,
         description: editData.description,
       };
-      console.log(
-        "Request payload to backend (as JSON body):",
-        JSON.stringify(payload, null, 2)
-      );
+      logger.info("Request payload:", payload);
       await fetch(`http://localhost:8080/novels/${id}`, {
         method: "PATCH",
         headers: {
@@ -141,13 +143,14 @@ function Library({ darkMode }) {
         },
         body: JSON.stringify(payload),
       });
+      logger.info("Edit saved successfully for novel ID:", id);
       setEditData({});
       loadNovels();
     } catch (err) {
+      logger.error("Failed to save edits for novel ID:", id, err.message);
       setError(
         "Failed to update novel: " + (err?.message || JSON.stringify(err))
       );
-      console.error("Update error:", err);
     }
   };
 

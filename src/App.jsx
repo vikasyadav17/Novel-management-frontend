@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import NovelForm from "./components/NovelForm";
 import Library from "./pages/Library";
 import Search from "./pages/Search"; // import Search page
+import BulkUploadPage from "./pages/BulkUploadPage"; // Import BulkUploadPage
 import "./App.css";
 
 function App() {
@@ -17,6 +18,17 @@ function App() {
     } catch (err) {
       console.error(err);
       setError("Failed to add novel");
+    }
+  };
+
+  const handleBulkUpload = async (novels) => {
+    try {
+      // You can call your API here to upload the novels in bulk
+      console.log("Bulk upload data:", novels);
+      // Example: await novelApi.bulkUpload(novels);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to upload novels in bulk");
     }
   };
 
@@ -159,6 +171,24 @@ function App() {
               >
                 Search
               </Link>
+              <span style={{ color: "#bbb", fontSize: "18px" }}>|</span>
+              <Link
+                to="/bulk-upload"
+                style={{
+                  color: "#2980b9",
+                  fontWeight: "500",
+                  textDecoration: "none",
+                  margin: "0 12px",
+                  fontSize: "18px",
+                  padding: "2px 8px",
+                  borderRadius: "8px",
+                  transition: "background 0.2s",
+                }}
+                onMouseOver={(e) => (e.target.style.background = "#eaf6ff")}
+                onMouseOut={(e) => (e.target.style.background = "transparent")}
+              >
+                Bulk Upload
+              </Link>
             </nav>
           </div>
         </header>
@@ -166,7 +196,13 @@ function App() {
           <Routes>
             <Route
               path="/"
-              element={<NovelForm onAddNovel={handleAddNovel} />}
+              element={
+                <NovelForm
+                  onAddNovel={handleAddNovel}
+                  onBulkUpload={handleBulkUpload}
+                  darkMode={false} // Pass darkMode if needed
+                />
+              }
             />
             <Route path="/library" element={<Library />} />
             <Route
@@ -174,6 +210,10 @@ function App() {
               element={<Search darkMode={darkMode} />}
             />{" "}
             {/* add this line */}
+            <Route
+              path="/bulk-upload"
+              element={<BulkUploadPage onBulkUpload={handleBulkUpload} />}
+            />
           </Routes>
           {error && <div>{error}</div>}
         </main>
