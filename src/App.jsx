@@ -91,8 +91,10 @@ function App() {
                   style={{
                     fontSize: "2.2rem",
                     fontWeight: "bold",
-                    color: "#222",
-                    textShadow: "0 2px 8px rgba(41,128,185,0.08)",
+                    color: darkMode ? "#f7f7fb" : "#222", // <-- fix for dark mode
+                    textShadow: darkMode
+                      ? "0 2px 8px rgba(41,128,185,0.18)"
+                      : "0 2px 8px rgba(41,128,185,0.08)",
                     margin: 0,
                     letterSpacing: "1px",
                     cursor: "pointer",
