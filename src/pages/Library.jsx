@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { novelApi } from "../services/novelApi";
 
 function Library() {
@@ -7,6 +7,16 @@ function Library() {
   const [error, setError] = useState(null);
   const [editId, setEditId] = useState(null);
   const [editData, setEditData] = useState({});
+  const [editingCell, setEditingCell] = useState(null); // { rowId, field }
+  const [tooltip, setTooltip] = useState({ show: false, text: "", x: 0, y: 0 });
+  const [modal, setModal] = useState({
+    show: false,
+    field: "",
+    oldValue: "",
+    newValue: "",
+    rowId: null,
+  });
+  const tableRef = useRef();
 
   // Error boundary state
   const [renderError, setRenderError] = useState(null);
@@ -26,8 +36,18 @@ function Library() {
     }
   };
 
-  const handleEditClick = (novel) => {
-    setEditId(novel.novelDetails?.id || novel.id);
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleCellDoubleClick = (rowId, field) => {
+    setEditId(rowId);
+    setEditingCell({ rowId, field });
+    const novel = novels.find((n) => (n.novelDetails?.id || n.id) === rowId);
     setEditData({
       name: novel.name,
       originalName: novel.originalName || "",
@@ -37,12 +57,64 @@ function Library() {
     });
   };
 
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setEditData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const handleCellBlur = (id) => {
+    if (!editingCell) return;
+    const field = editingCell.field;
+    const novel = novels.find((n) => (n.novelDetails?.id || n.id) === id);
+    let oldValue = "";
+    if (field === "name") oldValue = novel.name;
+    else if (field === "link") oldValue = novel.link;
+    else if (field === "genre") oldValue = novel.genre;
+    else if (field === "description")
+      oldValue = novel.novelDetails?.description || "";
+    const newValue = editData[field];
+
+    // Only show modal if value changed
+    if (String(oldValue) !== String(newValue)) {
+      setModal({
+        show: true,
+        field,
+        oldValue,
+        newValue,
+        rowId: id,
+      });
+    } else {
+      setEditingCell(null);
+      setEditId(null);
+      setEditData({});
+    }
+  };
+
+  const handleCellKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.target.blur();
+    }
+  };
+
+  const handleModalConfirm = async () => {
+    await handleEditSave(modal.rowId);
+    setModal({
+      show: false,
+      field: "",
+      oldValue: "",
+      newValue: "",
+      rowId: null,
+    });
+    setEditingCell(null);
+    setEditId(null);
+  };
+
+  const handleModalCancel = () => {
+    setModal({
+      show: false,
+      field: "",
+      oldValue: "",
+      newValue: "",
+      rowId: null,
+    });
+    setEditingCell(null);
+    setEditId(null);
+    setEditData({});
   };
 
   const handleEditSave = async (id) => {
@@ -65,7 +137,6 @@ function Library() {
         },
         body: JSON.stringify(payload),
       });
-      setEditId(null);
       setEditData({});
       loadNovels();
     } catch (err) {
@@ -74,6 +145,21 @@ function Library() {
       );
       console.error("Update error:", err);
     }
+  };
+
+  const handleTitleMouseEnter = (e, originalName) => {
+    if (!originalName) return;
+    const rect = e.target.getBoundingClientRect();
+    setTooltip({
+      show: true,
+      text: originalName,
+      x: rect.left + window.scrollX,
+      y: rect.top + window.scrollY - 8, // show above the cell
+    });
+  };
+
+  const handleTitleMouseLeave = () => {
+    setTooltip({ show: false, text: "", x: 0, y: 0 });
   };
 
   let content;
@@ -97,29 +183,52 @@ function Library() {
             <tbody>
               {novels.map((novel) => {
                 const id = novel.novelDetails?.id || novel.id;
-                const isEditing = editId === id;
                 return (
-                  <tr key={id}>
-                    <td>{id}</td>
-                    <td>
-                      {isEditing ? (
+                  <tr key={id} style={{ minHeight: "48px" }}>
+                    <td style={{ minHeight: "48px" }}>{id}</td>
+                    <td
+                      onDoubleClick={() => handleCellDoubleClick(id, "name")}
+                      style={{ minHeight: "48px", position: "relative" }}
+                    >
+                      {editingCell?.rowId === id &&
+                      editingCell?.field === "name" ? (
                         <input
                           name="name"
                           value={editData.name}
+                          autoFocus
                           onChange={handleEditChange}
+                          onBlur={() => handleCellBlur(id)}
+                          onKeyDown={handleCellKeyDown}
+                          style={{ width: "100%", minHeight: "32px" }}
                         />
                       ) : (
-                        novel.name
+                        <span
+                          onMouseEnter={(e) =>
+                            handleTitleMouseEnter(e, novel.originalName)
+                          }
+                          onMouseLeave={handleTitleMouseLeave}
+                          style={{
+                            cursor: novel.originalName ? "pointer" : "default",
+                          }}
+                        >
+                          {novel.name}
+                        </span>
                       )}
                     </td>
-                    <td>
-                      {isEditing ? (
+                    <td
+                      onDoubleClick={() => handleCellDoubleClick(id, "link")}
+                      style={{ minHeight: "48px" }}
+                    >
+                      {editingCell?.rowId === id &&
+                      editingCell?.field === "link" ? (
                         <input
                           name="link"
                           value={editData.link}
+                          autoFocus
                           onChange={handleEditChange}
-                          placeholder="Enter link"
-                          style={{ width: "100%" }}
+                          onBlur={() => handleCellBlur(id)}
+                          onKeyDown={(e) => handleCellKeyDown(e, id)}
+                          style={{ width: "100%", minHeight: "32px" }}
                         />
                       ) : novel.link ? (
                         <a
@@ -134,79 +243,176 @@ function Library() {
                         ""
                       )}
                     </td>
-                    <td>
-                      {isEditing ? (
+                    <td
+                      onDoubleClick={() => handleCellDoubleClick(id, "genre")}
+                      style={{ minHeight: "48px" }}
+                    >
+                      {editingCell?.rowId === id &&
+                      editingCell?.field === "genre" ? (
                         <input
                           name="genre"
                           value={editData.genre}
+                          autoFocus
                           onChange={handleEditChange}
+                          onBlur={() => handleCellBlur(id)}
+                          onKeyDown={(e) => handleCellKeyDown(e, id)}
+                          style={{ width: "100%", minHeight: "32px" }}
                         />
                       ) : (
                         novel.genre
                       )}
                     </td>
-                    <td>
-                      {isEditing ? (
+                    <td
+                      onDoubleClick={() =>
+                        handleCellDoubleClick(id, "description")
+                      }
+                      style={{ minHeight: "48px" }}
+                    >
+                      {editingCell?.rowId === id &&
+                      editingCell?.field === "description" ? (
                         <textarea
                           name="description"
                           value={editData.description}
+                          autoFocus
                           onChange={handleEditChange}
+                          onBlur={() => handleCellBlur(id)}
+                          onKeyDown={(e) => handleCellKeyDown(e, id)}
                           rows={3}
-                          style={{ width: "100%" }}
+                          style={{
+                            width: "100%",
+                            minHeight: "48px",
+                            resize: "none",
+                          }}
                         />
                       ) : (
-                        novel.novelDetails?.description || ""
-                      )}
-                    </td>
-                    <td>
-                      {isEditing ? (
-                        <>
-                          <button onClick={() => handleEditSave(id)}>
-                            Save
-                          </button>
-                          <button onClick={() => setEditId(null)}>
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          className="edit-pencil-btn"
-                          title="Edit"
-                          onClick={() => handleEditClick(novel)}
+                        <div
+                          style={{ minHeight: "48px", whiteSpace: "pre-line" }}
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="#2980b9"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            style={{ opacity: 0.6 }}
-                          >
-                            <rect
-                              x="2"
-                              y="4"
-                              width="20"
-                              height="16"
-                              rx="2"
-                              ry="2"
-                              stroke="none"
-                              fill="#fff"
-                            />
-                            <path d="M16.5 7.5L19 10L8 21H5v-3L16.5 7.5z" />
-                            <path d="M18 2a2.828 2.828 0 1 1 4 4L19 7l-4-4 3-3z" />
-                          </svg>
-                        </button>
+                          {novel.novelDetails?.description || ""}
+                        </div>
                       )}
                     </td>
+                    <td>{/* Pencil button removed */}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+          {/* Custom tooltip */}
+          {tooltip.show && (
+            <div
+              style={{
+                position: "absolute",
+                left: tooltip.x,
+                top: tooltip.y,
+                background: "#fff",
+                color: "#000",
+                border: "1px solid #ccc",
+                padding: "4px 8px",
+                borderRadius: "4px",
+                zIndex: 9999,
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                pointerEvents: "none",
+                fontSize: "14px",
+                transform: "translateY(-100%)", // ensure it's above
+              }}
+            >
+              {tooltip.text}
+            </div>
+          )}
+          {/* Confirmation Modal */}
+          {modal.show && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: "rgba(0,0,0,0.2)",
+                zIndex: 10000,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <div
+                style={{
+                  background: "#fff",
+                  color: "#222",
+                  borderRadius: "8px",
+                  padding: "24px",
+                  minWidth: "320px",
+                  boxShadow: "0 2px 16px rgba(0,0,0,0.15)",
+                  textAlign: "center",
+                }}
+              >
+                <div style={{ marginBottom: "16px", fontWeight: "bold" }}>
+                  Confirm Update
+                </div>
+                <div style={{ marginBottom: "12px" }}>
+                  <span>
+                    Change <b>{modal.field}</b>?
+                  </span>
+                </div>
+                <div style={{ marginBottom: "12px" }}>
+                  <div>
+                    <span style={{ color: "#888" }}>Old Value:</span>
+                    <div
+                      style={{
+                        background: "#f6f6f6",
+                        padding: "6px 10px",
+                        borderRadius: "4px",
+                        margin: "4px 0",
+                      }}
+                    >
+                      {modal.oldValue || <i>(empty)</i>}
+                    </div>
+                  </div>
+                  <div>
+                    <span style={{ color: "#888" }}>New Value:</span>
+                    <div
+                      style={{
+                        background: "#eaf6ff",
+                        padding: "6px 10px",
+                        borderRadius: "4px",
+                        margin: "4px 0",
+                      }}
+                    >
+                      {modal.newValue || <i>(empty)</i>}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  style={{
+                    marginRight: "12px",
+                    padding: "6px 18px",
+                    background: "#2980b9",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                  onClick={handleModalConfirm}
+                >
+                  Confirm
+                </button>
+                <button
+                  style={{
+                    padding: "6px 18px",
+                    background: "#eee",
+                    color: "#333",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                  onClick={handleModalCancel}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       );
     }
