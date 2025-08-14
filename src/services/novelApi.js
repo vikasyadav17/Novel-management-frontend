@@ -45,4 +45,10 @@ export const novelApi = {
   getNovelCount: async () => {
     return axios.get(`${BASE_URL}/count`);
   },
+
+  bulkUploadNovels: async (novels) => {
+    return axios.post(`${BASE_URL}/bulk`, novels, {
+      headers: { "Content-Type": "application/json" },
+    });
+  },
 };

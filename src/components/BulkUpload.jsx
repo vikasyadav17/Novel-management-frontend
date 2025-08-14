@@ -1,13 +1,20 @@
 import React, { useState } from "react";
 import * as XLSX from "xlsx";
+import { novelApi } from "../services/novelApi"; // Import novelApi
+import logger from "../utils/logger"; // Import logger
 
-function BulkUpload({ onBulkUpload }) {
+function BulkUpload({ onUploadComplete }) {
   const [error, setError] = useState(null);
   const [dragging, setDragging] = useState(false);
 
-  const handleFileUpload = (file) => {
+  const handleFileUpload = async (file) => {
+    if (!file) {
+      setError("No file selected. Please upload a valid file.");
+      return;
+    }
+
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
         const data = new Uint8Array(event.target.result);
         const workbook = XLSX.read(data, { type: "array" });
@@ -15,16 +22,47 @@ function BulkUpload({ onBulkUpload }) {
         const sheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-        // Validate and pass the data to the parent component
         if (jsonData.length === 0) {
           setError("The uploaded file is empty.");
-        } else {
-          setError(null);
-          onBulkUpload(jsonData);
+          return;
         }
+
+        setError(null); // Clear any previous errors
+
+        logger.info("Bulk upload initiated with data:", jsonData);
+
+        const formattedNovels = jsonData.map((novel) => ({
+          name: novel.Name || novel.name || "N/A",
+          originalName:
+            novel.OriginalName ||
+            novel.originalName ||
+            novel.ORIGINALNAME ||
+            "N/A",
+          genre: novel.Genre || novel.genre || "N/A",
+          link: novel.Link || novel.link || "N/A",
+          novelDetails: {
+            description: novel.Description || novel.description || "N/A",
+            mcName: novel.McName || novel.mcName || null,
+            mcCheating: novel.McCheating || novel.mcCheating || false,
+            specialCharacteristicOfMc:
+              novel.SpecialCharacteristicOfMc ||
+              novel.specialCharacteristicOfMc ||
+              null,
+          },
+        }));
+
+        logger.info("Formatted novels with details:", formattedNovels);
+
+        const result = await novelApi.bulkUploadNovels(formattedNovels);
+        onUploadComplete(result, null); // Pass success message to parent
       } catch (err) {
         setError(
           "Failed to process the file. Please upload a valid Excel file."
+        );
+        logger.error("Bulk upload failed:", err.message);
+        onUploadComplete(
+          null,
+          err.message || "Failed to upload novels in bulk."
         );
       }
     };

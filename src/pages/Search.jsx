@@ -169,6 +169,23 @@ function Search({ darkMode }) {
           <div style={{ color: darkMode ? "#f7f7fb" : "#222" }}>
             Loading novels...
           </div>
+        ) : novels.length === 0 ? (
+          <div
+            style={{
+              textAlign: "center",
+              color: darkMode ? "#f7f7fb" : "#333",
+              fontSize: "1.5rem",
+              fontWeight: "bold",
+              marginTop: "40px",
+              padding: "20px",
+              background: darkMode ? "#444" : "#f9f9f9",
+              borderRadius: "8px",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            No novels found matching your search criteria. Try adjusting your
+            filters!
+          </div>
         ) : (
           <ul style={{ listStyle: "none", padding: 0 }}>
             {novels.map((novel) => (

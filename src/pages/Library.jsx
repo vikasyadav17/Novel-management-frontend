@@ -17,6 +17,8 @@ function Library({ darkMode }) {
     newValue: "",
     rowId: null,
   });
+  const [currentPage, setCurrentPage] = useState(1); // Current page for pagination
+  const novelsPerPage = 10; // Number of novels per page
   const tableRef = useRef();
 
   // Error boundary state
@@ -60,7 +62,7 @@ function Library({ darkMode }) {
       name: novel.name,
       originalName: novel.originalName || "",
       genre: novel.genre,
-      description: novel.novelDetails?.description || "",
+      description: novel.novelDetails?.description || "", // Ensure description is fetched correctly
       link: novel.link || "",
     });
   };
@@ -76,6 +78,15 @@ function Library({ darkMode }) {
     else if (field === "description")
       oldValue = novel.novelDetails?.description || "";
     const newValue = editData[field];
+
+    // Prevent modal and request if the new value is empty
+    if (!newValue || String(newValue).trim() === "") {
+      logger.warn(`Field "${field}" cannot be empty. Changes discarded.`);
+      setEditingCell(null);
+      setEditId(null);
+      setEditData({});
+      return;
+    }
 
     // Only show modal if value changed
     if (String(oldValue) !== String(newValue)) {
@@ -128,13 +139,19 @@ function Library({ darkMode }) {
   const handleEditSave = async (id) => {
     logger.info("Saving edits for novel ID:", id, "with data:", editData);
     try {
+      const novel = novels.find((n) => (n.novelDetails?.id || n.id) === id);
+
       const payload = {
         name: editData.name,
         originalName: editData.originalName,
         genre: editData.genre,
         link: editData.link,
-        description: editData.description,
+        novelDetails: {
+          ...novel.novelDetails, // Preserve existing novelDetails properties
+          description: editData.description, // Update description
+        },
       };
+
       logger.info("Request payload:", payload);
       await fetch(`http://localhost:8080/novels/${id}`, {
         method: "PATCH",
@@ -169,11 +186,39 @@ function Library({ darkMode }) {
     setTooltip({ show: false, text: "", x: 0, y: 0 });
   };
 
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const paginatedNovels = novels.slice(
+    (currentPage - 1) * novelsPerPage,
+    currentPage * novelsPerPage
+  );
+
   let content;
   try {
     if (loading) content = <div>Loading novels...</div>;
     else if (error) content = <div>{error}</div>;
-    else {
+    else if (novels.length === 0) {
+      content = (
+        <div
+          style={{
+            textAlign: "center",
+            color: darkMode ? "#f7f7fb" : "#333",
+            fontSize: "1.5rem",
+            fontWeight: "bold",
+            marginTop: "40px",
+            padding: "20px",
+            background: darkMode ? "#444" : "#f9f9f9",
+            borderRadius: "8px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+          }}
+        >
+          Your library is currently empty. Start adding novels to explore your
+          collection!
+        </div>
+      );
+    } else {
       content = (
         <div
           className={`library-table-container${darkMode ? " dark-mode" : ""}`}
@@ -198,7 +243,7 @@ function Library({ darkMode }) {
               </tr>
             </thead>
             <tbody>
-              {novels.map((novel) => {
+              {paginatedNovels.map((novel) => {
                 const id = novel.novelDetails?.id || novel.id;
                 return (
                   <tr key={id} style={{ minHeight: "48px" }}>
@@ -271,7 +316,6 @@ function Library({ darkMode }) {
                             color: darkMode ? "#f7f7fb" : undefined,
                             background: darkMode ? "#222" : undefined,
                           }}
-                          // Fix placeholder color in dark mode
                           placeholder="Link"
                           className={darkMode ? "dark-mode-input" : ""}
                         />
@@ -313,7 +357,6 @@ function Library({ darkMode }) {
                             color: darkMode ? "#f7f7fb" : undefined,
                             background: darkMode ? "#222" : undefined,
                           }}
-                          // Fix placeholder color in dark mode
                           placeholder="Genre"
                           className={darkMode ? "dark-mode-input" : ""}
                         />
@@ -334,7 +377,7 @@ function Library({ darkMode }) {
                       editingCell?.field === "description" ? (
                         <textarea
                           name="description"
-                          value={editData.description}
+                          value={editData.description} // Ensure description is editable
                           autoFocus
                           onChange={handleEditChange}
                           onBlur={() => handleCellBlur(id)}
@@ -356,7 +399,8 @@ function Library({ darkMode }) {
                             color: darkMode ? "#f7f7fb" : undefined,
                           }}
                         >
-                          {novel.novelDetails?.description || ""}
+                          {novel.novelDetails?.description || ""}{" "}
+                          {/* Display description */}
                         </div>
                       )}
                     </td>
@@ -366,6 +410,35 @@ function Library({ darkMode }) {
               })}
             </tbody>
           </table>
+          {/* Pagination Controls */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginTop: "16px",
+            }}
+          >
+            {Array.from(
+              { length: Math.ceil(novels.length / novelsPerPage) },
+              (_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => handlePageChange(index + 1)}
+                  style={{
+                    margin: "0 4px",
+                    padding: "8px 12px",
+                    background: currentPage === index + 1 ? "#2980b9" : "#fff",
+                    color: currentPage === index + 1 ? "#fff" : "#000",
+                    border: "1px solid #ccc",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  {index + 1}
+                </button>
+              )
+            )}
+          </div>
           {/* Custom tooltip */}
           {tooltip.show && (
             <div
