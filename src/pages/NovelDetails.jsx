@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect, useContext } from "react";
+import React from "react"; // Add this import
 import { novelApi } from "../services/novelApi";
 import { ThemeContext } from "../context/ThemeContext";
 import swordGodImage from "../assets/images/sword_god.jpg";
@@ -35,6 +36,11 @@ function NovelDetails() {
         const response = await novelApi.getNovelById(id);
         setNovel(response.data);
 
+        // Debug: Check what tags data we're getting
+        console.log("Novel data:", response.data);
+        console.log("Tags value:", response.data.tags);
+        console.log("Tags type:", typeof response.data.tags);
+
         // Check if novel is favorite from localStorage
         const favorites = JSON.parse(
           localStorage.getItem("favoriteNovels") || "[]"
@@ -51,6 +57,8 @@ function NovelDetails() {
 
   // Function to toggle favorite status
   const toggleFavorite = () => {
+    if (!novel?._id) return; // Add null check
+
     const newFavoriteStatus = !isFavorite;
     setIsFavorite(newFavoriteStatus);
 
@@ -230,6 +238,8 @@ function NovelDetails() {
 
   // Function to enter edit mode - include only fields that exist in your data model
   const startEditing = () => {
+    if (!novel) return; // Add null check
+
     setIsEditing(true);
     // Initialize editedValues with only fields that exist in your data model
     setEditedValues({
@@ -237,6 +247,7 @@ function NovelDetails() {
       originalName: novel.originalName || "",
       link: novel.link || "",
       tags: novel.tags || "",
+      description: novel.novelDetails?.description || "",
       // Include these fields only if they exist in your data model
       ...(novel.mcName !== undefined && { mcName: novel.mcName || "" }),
       ...(novel.specialCharacteristicOfMc !== undefined && {
@@ -255,9 +266,14 @@ function NovelDetails() {
   // Function to show the comparison modal
   const showChanges = () => {
     // Only proceed if there are actual changes
-    const hasChanges = Object.keys(editedValues).some(
-      (key) => editedValues[key] !== (novel[key] || "")
-    );
+    const hasChanges = Object.keys(editedValues).some((key) => {
+      if (key === "description") {
+        // Special handling for description (nested in novelDetails)
+        return editedValues[key] !== (novel.novelDetails?.description || "");
+      } else {
+        return editedValues[key] !== (novel[key] || "");
+      }
+    });
 
     if (hasChanges) {
       setShowComparisonModal(true);
@@ -268,33 +284,101 @@ function NovelDetails() {
 
   // Function to save changes after confirmation
   const saveChanges = async () => {
+    console.log("saveChanges function called");
+    console.log("Current novel object:", novel);
+    console.log("Novel ID:", novel?._id);
+    console.log("URL ID:", id);
+
+    // Use the ID from URL as fallback
+    const novelId = novel?._id || id;
+
+    if (!novelId) {
+      console.log("No novel ID found in novel object or URL, returning");
+      alert(
+        "Error: Novel ID not found. Please refresh the page and try again."
+      );
+      return;
+    }
+
+    console.log("Using novel ID:", novelId);
+    console.log("Setting isSaving to true");
     setIsSaving(true);
+
     try {
+      console.log("Starting to process changed fields");
+      console.log("editedValues:", editedValues);
+      console.log("novel:", novel);
+
       // Only send fields that have changed
       const changedFields = {};
       Object.keys(editedValues).forEach((key) => {
-        if (editedValues[key] !== (novel[key] || "")) {
-          changedFields[key] = editedValues[key];
+        if (key === "description") {
+          // Special handling for description (nested in novelDetails)
+          const originalDesc = novel?.novelDetails?.description || "";
+          const newDesc = editedValues[key];
+          console.log(
+            `Description - Original: "${originalDesc}", New: "${newDesc}"`
+          );
+          if (newDesc !== originalDesc) {
+            changedFields[key] = newDesc;
+          }
+        } else {
+          const originalValue = novel?.[key] || "";
+          const newValue = editedValues[key];
+          console.log(
+            `${key} - Original: "${originalValue}", New: "${newValue}"`
+          );
+          if (newValue !== originalValue) {
+            changedFields[key] = newValue;
+          }
         }
       });
 
-      // Make the API call to update the novel
-      const response = await novelApi.updateNovel(novel._id, changedFields);
+      console.log("changedFields:", changedFields);
+
+      if (Object.keys(changedFields).length === 0) {
+        console.log("No changes detected, skipping API call");
+        alert("No changes detected");
+        setIsSaving(false);
+        return;
+      }
+
+      console.log("Making API call to update novel with ID:", novelId);
+      // Make the API call to update the novel - use the novelId we determined above
+      const response = await novelApi.updateNovel(novelId, changedFields);
+      console.log("API response:", response);
 
       // Update the local state with the new values
-      setNovel({
-        ...novel,
-        ...changedFields,
-      });
+      const updatedNovel = { ...novel, ...changedFields };
+
+      // Handle description update (since it's nested in novelDetails)
+      if (changedFields.description !== undefined) {
+        updatedNovel.novelDetails = {
+          ...novel.novelDetails,
+          description: changedFields.description,
+        };
+      }
+
+      console.log("Updating novel state with:", updatedNovel);
+      setNovel(updatedNovel);
 
       // Exit edit mode and reset
+      console.log("Exiting edit mode");
       setIsEditing(false);
       setEditedValues({});
       setShowComparisonModal(false);
+
+      alert("Changes saved successfully!");
     } catch (error) {
       console.error("Error saving changes:", error);
-      alert("Failed to save changes");
+      console.error("Error details:", error.response?.data || error.message);
+      alert(
+        `Failed to save changes: ${
+          error.response?.data?.message || error.message
+        }`
+      );
     } finally {
+      console.log("Setting isSaving to false");
       setIsSaving(false);
     }
   };
@@ -365,7 +449,6 @@ function NovelDetails() {
 
   // Helper function to format dates using moment
   const formatDate = (dateString) => {
-    console.log(dateString);
     if (!dateString) return "";
     return moment(dateString).format("DD MMM YYYY");
   };
@@ -404,6 +487,9 @@ function NovelDetails() {
     );
 
   if (error) return <div style={containerStyle}>{error}</div>;
+
+  // Add this check to prevent rendering when novel is null
+  if (!novel) return <div style={containerStyle}>Novel not found</div>;
 
   return (
     <div
@@ -1190,8 +1276,9 @@ function NovelDetails() {
           )}
         </div>
 
-        {/* Tags section */}
-        {(novel.tags || isEditing) && (
+        {/* Tags section - Fixed condition */}
+        {(novel.tags && novel.tags.trim && novel.tags.trim() !== "") ||
+        isEditing ? (
           <div style={{ marginBottom: "1.5rem" }}>
             <strong
               style={{
@@ -1241,7 +1328,7 @@ function NovelDetails() {
               )
             )}
           </div>
-        )}
+        ) : null}
 
         {/* Link to novel */}
         <div style={{ marginBottom: "1.5rem" }}>
@@ -1284,7 +1371,7 @@ function NovelDetails() {
         </div>
 
         {/* Description */}
-        {novel.novelDetails?.description && (
+        {(novel.novelDetails?.description || isEditing) && (
           <div style={{ marginBottom: "1.5rem" }}>
             <strong
               style={{
@@ -1295,31 +1382,48 @@ function NovelDetails() {
             >
               Description:
             </strong>
-            <div
-              style={{
-                ...textStyle,
-                padding: "1.25rem",
-                backgroundColor: darkMode
-                  ? "rgba(255,255,255,0.03)"
-                  : "rgba(0,0,0,0.01)",
-                borderRadius: "10px",
-                borderLeft: darkMode
-                  ? "4px solid #61dafb"
-                  : "4px solid #0066cc",
-                lineHeight: "1.9",
-                whiteSpace: "pre-wrap",
-              }}
-            >
-              {novel.novelDetails.description}
-            </div>
+            {isEditing ? (
+              <textarea
+                value={editedValues.description || ""}
+                onChange={(e) =>
+                  handleFieldChange("description", e.target.value)
+                }
+                placeholder="Enter novel description"
+                style={{
+                  ...inputStyle,
+                  minHeight: "150px",
+                  resize: "vertical",
+                  lineHeight: "1.6",
+                  fontFamily: "inherit",
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  ...textStyle,
+                  padding: "1.25rem",
+                  backgroundColor: darkMode
+                    ? "rgba(255,255,255,0.03)"
+                    : "rgba(0,0,0,0.01)",
+                  borderRadius: "10px",
+                  borderLeft: darkMode
+                    ? "4px solid #61dafb"
+                    : "4px solid #0066cc",
+                  lineHeight: "1.9",
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                {novel.novelDetails.description}
+              </div>
+            )}
           </div>
         )}
       </div>
 
       {/* Comparison Modal */}
       {showComparisonModal && (
-        <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
+        <div style={modalOverlayStyle} onClick={(e) => e.stopPropagation()}>
+          <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
             <h2
               style={{
                 fontSize: "1.5rem",
@@ -1363,7 +1467,10 @@ function NovelDetails() {
 
               {/* Display changed fields */}
               {Object.keys(editedValues).map((key) => {
-                const originalValue = novel[key] || "";
+                const originalValue =
+                  key === "description"
+                    ? novel.novelDetails?.description || ""
+                    : novel[key] || "";
                 const newValue = editedValues[key] || "";
 
                 // Only show fields that have changed
@@ -1394,6 +1501,9 @@ function NovelDetails() {
                           ? "rgba(255,255,255,0.03)"
                           : "rgba(0,0,0,0.02)",
                         borderRadius: "4px",
+                        maxHeight: "100px",
+                        overflowY: "auto",
+                        whiteSpace: "pre-wrap",
                       }}
                     >
                       {originalValue || <em style={{ opacity: 0.5 }}>Empty</em>}
@@ -1406,6 +1516,9 @@ function NovelDetails() {
                           : "rgba(0, 102, 204, 0.05)",
                         borderRadius: "4px",
                         fontWeight: "500",
+                        maxHeight: "100px",
+                        overflowY: "auto",
+                        whiteSpace: "pre-wrap",
                       }}
                     >
                       {newValue || <em style={{ opacity: 0.5 }}>Empty</em>}
@@ -1423,7 +1536,13 @@ function NovelDetails() {
               }}
             >
               <button
-                onClick={() => setShowComparisonModal(false)}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log("Cancel button clicked");
+                  setShowComparisonModal(false);
+                }}
                 style={{
                   padding: "0.5rem 1rem",
                   backgroundColor: darkMode ? "#444" : "#ccc",
@@ -1431,12 +1550,21 @@ function NovelDetails() {
                   border: "none",
                   borderRadius: "4px",
                   cursor: "pointer",
+                  fontSize: "1rem",
                 }}
               >
                 Cancel
               </button>
               <button
-                onClick={saveChanges}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log("Confirm button clicked, isSaving:", isSaving);
+                  if (!isSaving) {
+                    saveChanges();
+                  }
+                }}
                 disabled={isSaving}
                 style={{
                   padding: "0.5rem 1rem",
@@ -1444,8 +1572,9 @@ function NovelDetails() {
                   color: "white",
                   border: "none",
                   borderRadius: "4px",
-                  cursor: "pointer",
+                  cursor: isSaving ? "not-allowed" : "pointer",
                   opacity: isSaving ? 0.7 : 1,
+                  fontSize: "1rem",
                 }}
               >
                 {isSaving ? "Saving..." : "Confirm Changes"}
