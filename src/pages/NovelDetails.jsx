@@ -79,18 +79,22 @@ function NovelDetails() {
   const containerStyle = {
     color: darkMode ? "#ffffff" : "#333333",
     background: darkMode
-      ? "linear-gradient(145deg, #121212 0%, #1a1a1a 100%)"
-      : "linear-gradient(145deg, #ffffff 0%, #f8f8f8 100%)",
-    padding: "2.5rem",
-    borderRadius: "16px",
+      ? "linear-gradient(145deg, #0a0a0a 0%, #1a1a1a 50%, #121212 100%)"
+      : "linear-gradient(145deg, #ffffff 0%, #f8f9ff 50%, #f5f7fa 100%)",
+    padding: "3rem",
+    borderRadius: "24px",
     boxShadow: darkMode
-      ? "0 10px 25px rgba(0, 0, 0, 0.5)"
-      : "0 10px 25px rgba(0, 0, 0, 0.08)",
-    maxWidth: "900px",
-    margin: "2.5rem auto",
-    transition: "all 0.4s ease",
+      ? "0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+      : "0 20px 40px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
+    maxWidth: "1000px",
+    margin: "3rem auto",
+    transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
     position: "relative",
-    overflowX: "hidden", // Prevent horizontal scrolling
+    overflowX: "hidden",
+    backdropFilter: "blur(10px)",
+    border: darkMode
+      ? "1px solid rgba(255, 255, 255, 0.1)"
+      : "1px solid rgba(0, 0, 0, 0.05)",
   };
 
   // Improved text styling with better readability
@@ -101,67 +105,81 @@ function NovelDetails() {
     transition: "color 0.3s ease",
   };
 
-  // Enhanced heading style with accent underline
+  // Enhanced heading style with gradient text
   const headingStyle = {
-    color: darkMode ? "#ffffff" : "#222222",
-    fontSize: "2.75rem",
-    fontWeight: "700",
-    marginBottom: "2rem",
-    paddingBottom: "0.75rem",
-    position: "relative",
-    textShadow: darkMode ? "2px 2px 4px rgba(0, 0, 0, 0.5)" : "none",
-    borderBottom: "none",
+    background: darkMode
+      ? "linear-gradient(135deg, #61dafb 0%, #4ecdc4 50%, #45b7d1 100%)"
+      : "linear-gradient(135deg, #0066cc 0%, #0099ff 50%, #00bcd4 100%)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
+    fontSize: "3.5rem",
+    fontWeight: "800",
+    marginBottom: "1.5rem",
     textAlign: "center",
-    "&:after": {
-      content: "''",
-      position: "absolute",
-      bottom: 0,
-      left: "50%",
-      transform: "translateX(-50%)",
-      width: "80px",
-      height: "4px",
-      background: darkMode ? "#61dafb" : "#0066cc",
-      borderRadius: "4px",
-    },
+    position: "relative",
+    letterSpacing: "-0.02em",
+    lineHeight: "1.1",
+    textShadow: "none",
+    animation: "fadeInUp 0.8s ease-out",
   };
 
-  // Enhanced styling for labels with accent color
+  // Enhanced styling for labels with gradient accent
   const labelStyle = {
     ...textStyle,
     fontWeight: "700",
-    fontSize: "1.1rem",
+    fontSize: "1.15rem",
     display: "inline-block",
-    minWidth: "150px", // Slightly wider for better alignment
-    color: darkMode ? "#61dafb" : "#0066cc",
+    minWidth: "160px",
+    background: darkMode
+      ? "linear-gradient(135deg, #61dafb, #4ecdc4)"
+      : "linear-gradient(135deg, #0066cc, #0099ff)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
     transition: "all 0.3s ease",
+    marginBottom: "0.5rem",
   };
 
   // Enhanced styling for links with hover effect
   const linkStyle = {
-    color: darkMode ? "#61dafb" : "#0066cc",
+    background: darkMode
+      ? "linear-gradient(135deg, #61dafb, #4ecdc4)"
+      : "linear-gradient(135deg, #0066cc, #0099ff)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
     textDecoration: "none",
-    borderBottom: "1px dotted",
+    borderBottom: "2px dotted rgba(97, 218, 251, 0.5)",
     paddingBottom: "2px",
-    transition: "all 0.2s ease-in-out",
-    fontWeight: "500",
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    fontWeight: "600",
+    fontSize: "1rem",
     "&:hover": {
-      color: darkMode ? "#a6e9ff" : "#004499",
       borderBottomStyle: "solid",
+      transform: "translateY(-1px)",
+      filter: "brightness(1.2)",
     },
   };
 
-  // New style for content sections
+  // Enhanced section style with glassmorphism
   const sectionStyle = {
     backgroundColor: darkMode
-      ? "rgba(255, 255, 255, 0.03)"
-      : "rgba(0, 0, 0, 0.01)",
-    padding: "1.5rem",
-    borderRadius: "12px",
-    marginBottom: "2rem",
+      ? "rgba(255, 255, 255, 0.05)"
+      : "rgba(255, 255, 255, 0.8)",
+    padding: "2.5rem",
+    borderRadius: "20px",
+    marginBottom: "2.5rem",
     boxShadow: darkMode
-      ? "inset 0 1px 3px rgba(255, 255, 255, 0.05)"
-      : "inset 0 1px 3px rgba(0, 0, 0, 0.05)",
-    transition: "all 0.3s ease",
+      ? "0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+      : "0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9)",
+    transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+    backdropFilter: "blur(20px)",
+    border: darkMode
+      ? "1px solid rgba(255, 255, 255, 0.1)"
+      : "1px solid rgba(255, 255, 255, 0.8)",
+    position: "relative",
+    overflow: "hidden",
   };
 
   // Add function to handle bulk upload of novel details and opinion
@@ -392,20 +410,42 @@ function NovelDetails() {
       className={`novel-details ${darkMode ? "dark-mode" : ""}`}
       style={containerStyle}
     >
-      {/* Gradient decoration at top */}
+      {/* Gradient decoration at top - Enhanced */}
       <div
         style={{
           position: "absolute",
           top: 0,
           left: 0,
           right: 0,
-          height: "6px",
-          background: `linear-gradient(90deg, ${
-            darkMode ? "#61dafb" : "#0066cc"
-          } 0%, ${darkMode ? "#a64dff" : "#8c43ff"} 100%)`,
-          borderRadius: "16px 16px 0 0",
+          height: "8px",
+          background: `linear-gradient(90deg, 
+            ${darkMode ? "#61dafb" : "#0066cc"} 0%, 
+            ${darkMode ? "#4ecdc4" : "#0099ff"} 33%, 
+            ${darkMode ? "#45b7d1" : "#00bcd4"} 66%, 
+            ${darkMode ? "#26d0ce" : "#00acc1"} 100%)`,
+          borderRadius: "24px 24px 0 0",
+          animation: "shimmer 3s ease-in-out infinite",
         }}
       ></div>
+
+      {/* Remove or comment out the floating particles background if it's causing issues */}
+      {/* 
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          pointerEvents: "none",
+          opacity: 0.1,
+          background: darkMode
+            ? "radial-gradient(circle at 20% 50%, #61dafb 0%, transparent 50%), radial-gradient(circle at 80% 20%, #4ecdc4 0%, transparent 50%), radial-gradient(circle at 40% 80%, #45b7d1 0%, transparent 50%)"
+            : "radial-gradient(circle at 20% 50%, #0066cc 0%, transparent 50%), radial-gradient(circle at 80% 20%, #0099ff 0%, transparent 50%), radial-gradient(circle at 40% 80%, #00bcd4 0%, transparent 50%)",
+          borderRadius: "24px",
+        }}
+      ></div>
+      */}
 
       {/* Add Edit Button */}
       {!isEditing ? (
@@ -486,34 +526,66 @@ function NovelDetails() {
           marginBottom: "2rem",
         }}
       >
+        {/* Enhanced image container with hover effects */}
         <div
           style={{
             position: "relative",
-            marginBottom: "2rem",
-            padding: "0.5rem",
-            borderRadius: "12px",
+            marginBottom: "2.5rem",
+            padding: "1rem",
+            borderRadius: "20px",
             background: darkMode
-              ? "rgba(255, 255, 255, 0.05)"
-              : "rgba(0, 0, 0, 0.02)",
+              ? "linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))"
+              : "linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6))",
             boxShadow: darkMode
-              ? "0 8px 20px rgba(0, 0, 0, 0.4)"
-              : "0 8px 20px rgba(0, 0, 0, 0.1)",
+              ? "0 15px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+              : "0 15px 35px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9)",
+            transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+            cursor: "pointer",
+            "&:hover": {
+              transform: "translateY(-5px) scale(1.02)",
+              boxShadow: darkMode
+                ? "0 25px 50px rgba(0, 0, 0, 0.6)"
+                : "0 25px 50px rgba(0, 0, 0, 0.15)",
+            },
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-5px) scale(1.02)";
+            e.currentTarget.style.boxShadow = darkMode
+              ? "0 25px 50px rgba(0, 0, 0, 0.6)"
+              : "0 25px 50px rgba(0, 0, 0, 0.15)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0) scale(1)";
+            e.currentTarget.style.boxShadow = darkMode
+              ? "0 15px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+              : "0 15px 35px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9)";
           }}
         >
           <img
             src={novel.imageUrl || swordGodImage}
             alt={`Cover of ${novel.name}`}
             style={{
-              maxWidth: "280px",
-              minHeight: "400px",
+              maxWidth: "300px",
+              minHeight: "420px",
               width: "100%",
-              height: "420px",
+              height: "450px",
               objectFit: "cover",
-              borderRadius: "8px",
-              transition: "transform 0.3s ease",
-              "&:hover": {
-                transform: "scale(1.02)",
-              },
+              borderRadius: "15px",
+              transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+              filter: "contrast(1.1) saturate(1.1)",
+            }}
+          />
+          {/* Image overlay gradient */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: "1rem",
+              left: "1rem",
+              right: "1rem",
+              height: "100px",
+              background: "linear-gradient(transparent, rgba(0, 0, 0, 0.8))",
+              borderRadius: "0 0 15px 15px",
+              pointerEvents: "none",
             }}
           />
         </div>
@@ -573,32 +645,69 @@ function NovelDetails() {
 
         {/* Personal Rating - show stars under name */}
         {novel.novelOpinion?.rating >= 0 && (
-          <div style={{ marginBottom: "1.5rem", textAlign: "center" }}>
-            {[...Array(5)].map((_, i) => (
-              <span
-                key={i}
-                style={{
-                  color:
-                    i < novel.novelOpinion.rating
-                      ? "#FFD700" // Golden color for filled stars
-                      : darkMode
-                      ? "rgba(255, 215, 0, 0.3)" // More visible transparent golden for dark mode
-                      : "rgba(255, 215, 0, 0.4)", // More visible transparent golden for light mode
-                  fontSize: "2rem", // Increased size
-                  marginRight: "8px", // Increased spacing
-                  textShadow:
-                    i < novel.novelOpinion.rating
-                      ? "0 0 8px rgba(255, 215, 0, 0.6)"
-                      : "none",
-                  filter:
-                    i < novel.novelOpinion.rating
-                      ? "drop-shadow(0 0 4px rgba(255, 215, 0, 0.8))"
-                      : "none",
-                }}
-              >
-                ★
-              </span>
-            ))}
+          <div
+            style={{
+              marginBottom: "2rem",
+              textAlign: "center",
+              animation: "fadeIn 1s ease-out 0.3s both",
+            }}
+          >
+            <div
+              style={{
+                padding: "1rem 2rem",
+                borderRadius: "50px",
+                background: darkMode
+                  ? "linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05))"
+                  : "linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 215, 0, 0.08))",
+                backdropFilter: "blur(10px)",
+                border: "1px solid rgba(255, 215, 0, 0.2)",
+                display: "inline-block",
+              }}
+            >
+              {[...Array(5)].map((_, i) => (
+                <span
+                  key={i}
+                  style={{
+                    color:
+                      i < novel.novelOpinion.rating
+                        ? "#FFD700"
+                        : "rgba(255, 215, 0, 0.3)",
+                    fontSize: "2.2rem",
+                    marginRight: i < 4 ? "8px" : "0",
+                    textShadow:
+                      i < novel.novelOpinion.rating
+                        ? "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.4)"
+                        : "none",
+                    filter:
+                      i < novel.novelOpinion.rating
+                        ? "drop-shadow(0 0 8px rgba(255, 215, 0, 1))"
+                        : "none",
+                    transition: "all 0.3s ease",
+                    animation:
+                      i < novel.novelOpinion.rating
+                        ? `starGlow 2s ease-in-out infinite ${i * 0.2}s`
+                        : "none",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (i < novel.novelOpinion.rating) {
+                      e.target.style.transform = "scale(1.2)";
+                      e.target.style.filter =
+                        "drop-shadow(0 0 15px rgba(255, 215, 0, 1))";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = "scale(1)";
+                    e.target.style.filter =
+                      i < novel.novelOpinion.rating
+                        ? "drop-shadow(0 0 8px rgba(255, 215, 0, 1))"
+                        : "none";
+                  }}
+                >
+                  ★
+                </span>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -616,7 +725,35 @@ function NovelDetails() {
         >
           {/* Genre field */}
           {(novel.genre || isEditing) && (
-            <div>
+            <div
+              style={{
+                padding: "1.5rem",
+                borderRadius: "15px",
+                background: darkMode
+                  ? "rgba(255, 255, 255, 0.03)"
+                  : "rgba(255, 255, 255, 0.6)",
+                border: darkMode
+                  ? "1px solid rgba(255, 255, 255, 0.1)"
+                  : "1px solid rgba(255, 255, 255, 0.8)",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                "&:hover": {
+                  transform: "translateY(-2px)",
+                  boxShadow: darkMode
+                    ? "0 10px 25px rgba(0, 0, 0, 0.3)"
+                    : "0 10px 25px rgba(0, 0, 0, 0.1)",
+                },
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = darkMode
+                  ? "0 10px 25px rgba(0, 0, 0, 0.3)"
+                  : "0 10px 25px rgba(0, 0, 0, 0.1)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
               <strong style={labelStyle}>Genre:</strong>
               {isEditing ? (
                 <input
@@ -624,16 +761,32 @@ function NovelDetails() {
                   value={editedValues.genre || ""}
                   onChange={(e) => handleFieldChange("genre", e.target.value)}
                   placeholder="Genre"
-                  style={inputStyle}
+                  style={{
+                    ...inputStyle,
+                    background: darkMode
+                      ? "rgba(255, 255, 255, 0.05)"
+                      : "rgba(255, 255, 255, 0.9)",
+                    border: darkMode
+                      ? "1px solid rgba(255, 255, 255, 0.2)"
+                      : "1px solid rgba(0, 0, 0, 0.1)",
+                    borderRadius: "10px",
+                  }}
                 />
               ) : (
                 <span
                   style={{
                     ...textStyle,
-                    backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
-                    padding: "0.25rem 0.75rem",
-                    borderRadius: "20px",
-                    fontSize: "0.95rem",
+                    background: darkMode
+                      ? "linear-gradient(135deg, rgba(97, 218, 251, 0.2), rgba(78, 205, 196, 0.2))"
+                      : "linear-gradient(135deg, rgba(0, 102, 204, 0.1), rgba(0, 153, 255, 0.1))",
+                    padding: "0.5rem 1rem",
+                    borderRadius: "25px",
+                    fontSize: "1rem",
+                    fontWeight: "600",
+                    border: darkMode
+                      ? "1px solid rgba(97, 218, 251, 0.3)"
+                      : "1px solid rgba(0, 102, 204, 0.3)",
+                    display: "inline-block",
                   }}
                 >
                   {novel.genre}
@@ -667,12 +820,36 @@ function NovelDetails() {
               // For ratings, show with stars
               if (key.toLowerCase().includes("rating")) {
                 return (
-                  <div key={key}>
+                  <div
+                    key={key}
+                    style={{
+                      padding: "1.5rem",
+                      borderRadius: "15px",
+                      background: darkMode
+                        ? "rgba(255, 255, 255, 0.03)"
+                        : "rgba(255, 255, 255, 0.6)",
+                      border: darkMode
+                        ? "1px solid rgba(255, 255, 255, 0.1)"
+                        : "1px solid rgba(255, 255, 255, 0.8)",
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.boxShadow = darkMode
+                        ? "0 10px 25px rgba(0, 0, 0, 0.3)"
+                        : "0 10px 25px rgba(0, 0, 0, 0.1)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
+                  >
                     <strong style={labelStyle}>{formattedKey}:</strong>
                     <div
                       style={{
                         display: "inline-flex",
                         alignItems: "center",
+                        marginTop: "0.5rem",
                       }}
                     >
                       <span style={textStyle}>{value}/10</span>
@@ -709,15 +886,40 @@ function NovelDetails() {
 
               // For all other values
               return (
-                <div key={key}>
+                <div
+                  key={key}
+                  style={{
+                    padding: "1.5rem",
+                    borderRadius: "15px",
+                    background: darkMode
+                      ? "rgba(255, 255, 255, 0.03)"
+                      : "rgba(255, 255, 255, 0.6)",
+                    border: darkMode
+                      ? "1px solid rgba(255, 255, 255, 0.1)"
+                      : "1px solid rgba(255, 255, 255, 0.8)",
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = darkMode
+                      ? "0 10px 25px rgba(0, 0, 0, 0.3)"
+                      : "0 10px 25px rgba(0, 0, 0, 0.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                >
                   <strong style={labelStyle}>{formattedKey}:</strong>
-                  <span style={textStyle}>
-                    {typeof value === "boolean"
-                      ? value
-                        ? "Yes"
-                        : "No"
-                      : value}
-                  </span>
+                  <div style={{ marginTop: "0.5rem" }}>
+                    <span style={textStyle}>
+                      {typeof value === "boolean"
+                        ? value
+                          ? "Yes"
+                          : "No"
+                        : value}
+                    </span>
+                  </div>
                 </div>
               );
             })}
@@ -746,94 +948,244 @@ function NovelDetails() {
               // For boolean values like worthToContinue
               if (typeof value === "boolean") {
                 return (
-                  <div key={key}>
+                  <div
+                    key={key}
+                    style={{
+                      padding: "1.5rem",
+                      borderRadius: "15px",
+                      background: darkMode
+                        ? "rgba(255, 255, 255, 0.03)"
+                        : "rgba(255, 255, 255, 0.6)",
+                      border: darkMode
+                        ? "1px solid rgba(255, 255, 255, 0.1)"
+                        : "1px solid rgba(255, 255, 255, 0.8)",
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.boxShadow = darkMode
+                        ? "0 10px 25px rgba(0, 0, 0, 0.3)"
+                        : "0 10px 25px rgba(0, 0, 0, 0.1)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
+                  >
                     <strong style={labelStyle}>{formattedKey}:</strong>
-                    <span
-                      style={{
-                        ...textStyle,
-                        color: value
-                          ? darkMode
-                            ? "#4CAF50"
-                            : "#2E7D32"
-                          : darkMode
-                          ? "#F44336"
-                          : "#C62828",
-                        fontWeight: "600",
-                      }}
-                    >
-                      {value ? "Yes" : "No"}
-                    </span>
+                    <div style={{ marginTop: "0.5rem" }}>
+                      <span
+                        style={{
+                          ...textStyle,
+                          color: value
+                            ? darkMode
+                              ? "#4CAF50"
+                              : "#2E7D32"
+                            : darkMode
+                            ? "#F44336"
+                            : "#C62828",
+                          fontWeight: "600",
+                        }}
+                      >
+                        {value ? "Yes" : "No"}
+                      </span>
+                    </div>
                   </div>
                 );
               }
 
               // For all other values
               return (
-                <div key={key}>
+                <div
+                  key={key}
+                  style={{
+                    padding: "1.5rem",
+                    borderRadius: "15px",
+                    background: darkMode
+                      ? "rgba(255, 255, 255, 0.03)"
+                      : "rgba(255, 255, 255, 0.6)",
+                    border: darkMode
+                      ? "1px solid rgba(255, 255, 255, 0.1)"
+                      : "1px solid rgba(255, 255, 255, 0.8)",
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = darkMode
+                      ? "0 10px 25px rgba(0, 0, 0, 0.3)"
+                      : "0 10px 25px rgba(0, 0, 0, 0.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                >
                   <strong style={labelStyle}>{formattedKey}:</strong>
-                  <span style={textStyle}>{value}</span>
+                  <div style={{ marginTop: "0.5rem" }}>
+                    <span style={textStyle}>{value}</span>
+                  </div>
                 </div>
               );
             })}
 
           {/* Main Character (mcName) */}
           {novel.mcName && (
-            <div>
+            <div
+              style={{
+                padding: "1.5rem",
+                borderRadius: "15px",
+                background: darkMode
+                  ? "rgba(255, 255, 255, 0.03)"
+                  : "rgba(255, 255, 255, 0.6)",
+                border: darkMode
+                  ? "1px solid rgba(255, 255, 255, 0.1)"
+                  : "1px solid rgba(255, 255, 255, 0.8)",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = darkMode
+                  ? "0 10px 25px rgba(0, 0, 0, 0.3)"
+                  : "0 10px 25px rgba(0, 0, 0, 0.1)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
               <strong style={labelStyle}>Main Character:</strong>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={editedValues.mcName || ""}
-                  onChange={(e) => handleFieldChange("mcName", e.target.value)}
-                  placeholder="Main Character Name"
-                  style={inputStyle}
-                />
-              ) : (
-                <span style={textStyle}>{novel.mcName}</span>
-              )}
+              <div style={{ marginTop: "0.5rem" }}>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editedValues.mcName || ""}
+                    onChange={(e) =>
+                      handleFieldChange("mcName", e.target.value)
+                    }
+                    placeholder="Main Character Name"
+                    style={inputStyle}
+                  />
+                ) : (
+                  <span style={textStyle}>{novel.mcName}</span>
+                )}
+              </div>
             </div>
           )}
 
           {/* MC Trait */}
           {novel.specialCharacteristicOfMc && (
-            <div>
+            <div
+              style={{
+                padding: "1.5rem",
+                borderRadius: "15px",
+                background: darkMode
+                  ? "rgba(255, 255, 255, 0.03)"
+                  : "rgba(255, 255, 255, 0.6)",
+                border: darkMode
+                  ? "1px solid rgba(255, 255, 255, 0.1)"
+                  : "1px solid rgba(255, 255, 255, 0.8)",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = darkMode
+                  ? "0 10px 25px rgba(0, 0, 0, 0.3)"
+                  : "0 10px 25px rgba(0, 0, 0, 0.1)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
               <strong style={labelStyle}>MC Trait:</strong>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={editedValues.specialCharacteristicOfMc || ""}
-                  onChange={(e) =>
-                    handleFieldChange(
-                      "specialCharacteristicOfMc",
-                      e.target.value
-                    )
-                  }
-                  placeholder="MC Trait"
-                  style={inputStyle}
-                />
-              ) : (
-                <span style={textStyle}>{novel.specialCharacteristicOfMc}</span>
-              )}
+              <div style={{ marginTop: "0.5rem" }}>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editedValues.specialCharacteristicOfMc || ""}
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "specialCharacteristicOfMc",
+                        e.target.value
+                      )
+                    }
+                    placeholder="MC Trait"
+                    style={inputStyle}
+                  />
+                ) : (
+                  <span style={textStyle}>
+                    {novel.specialCharacteristicOfMc}
+                  </span>
+                )}
+              </div>
             </div>
           )}
 
           {/* Added On date */}
           {novel.novelDetails?.addedOn && (
-            <div>
+            <div
+              style={{
+                padding: "1.5rem",
+                borderRadius: "15px",
+                background: darkMode
+                  ? "rgba(255, 255, 255, 0.03)"
+                  : "rgba(255, 255, 255, 0.6)",
+                border: darkMode
+                  ? "1px solid rgba(255, 255, 255, 0.1)"
+                  : "1px solid rgba(255, 255, 255, 0.8)",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = darkMode
+                  ? "0 10px 25px rgba(0, 0, 0, 0.3)"
+                  : "0 10px 25px rgba(0, 0, 0, 0.1)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
               <strong style={labelStyle}>Added On:</strong>
-              <span style={textStyle}>
-                {formatDate(novel.novelDetails.addedOn)}
-              </span>
+              <div style={{ marginTop: "0.5rem" }}>
+                <span style={textStyle}>
+                  {formatDate(novel.novelDetails.addedOn)}
+                </span>
+              </div>
             </div>
           )}
 
           {/* Last Updated date */}
           {novel.novelDetails?.lastUpdatedOn && (
-            <div>
+            <div
+              style={{
+                padding: "1.5rem",
+                borderRadius: "15px",
+                background: darkMode
+                  ? "rgba(255, 255, 255, 0.03)"
+                  : "rgba(255, 255, 255, 0.6)",
+                border: darkMode
+                  ? "1px solid rgba(255, 255, 255, 0.1)"
+                  : "1px solid rgba(255, 255, 255, 0.8)",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = darkMode
+                  ? "0 10px 25px rgba(0, 0, 0, 0.3)"
+                  : "0 10px 25px rgba(0, 0, 0, 0.1)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
               <strong style={labelStyle}>Last Updated:</strong>
-              <span style={textStyle}>
-                {formatDate(novel.novelDetails.lastUpdatedOn)}
-              </span>
+              <div style={{ marginTop: "0.5rem" }}>
+                <span style={textStyle}>
+                  {formatDate(novel.novelDetails.lastUpdatedOn)}
+                </span>
+              </div>
             </div>
           )}
         </div>
