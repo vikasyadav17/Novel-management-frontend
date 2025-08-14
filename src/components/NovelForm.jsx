@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function NovelForm({ onAddNovel }) {
+function NovelForm({ onAddNovel, darkMode }) {
   const [formData, setFormData] = useState({
     link: "",
     originalName: "",
@@ -55,9 +55,10 @@ function NovelForm({ onAddNovel }) {
       <input
         type="text"
         name="name"
-        placeholder="Novel Name"
+        placeholder="Novel Title"
         value={formData.name}
         onChange={handleChange}
+        className={darkMode ? "dark-mode-input" : ""}
       />
       <input
         type="text"
@@ -65,6 +66,7 @@ function NovelForm({ onAddNovel }) {
         placeholder="Original Name"
         value={formData.originalName}
         onChange={handleChange}
+        className={darkMode ? "dark-mode-input" : ""}
       />
       <input
         type="text"
@@ -72,6 +74,7 @@ function NovelForm({ onAddNovel }) {
         placeholder="Novel Link"
         value={formData.link}
         onChange={handleChange}
+        className={darkMode ? "dark-mode-input" : ""}
       />
       <input
         type="text"
@@ -79,13 +82,14 @@ function NovelForm({ onAddNovel }) {
         placeholder="Genre"
         value={formData.genre}
         onChange={handleChange}
+        className={darkMode ? "dark-mode-input" : ""}
       />
-      {/* NovelDetails fields */}
       <textarea
         name="description"
         placeholder="Description"
         value={formData.novelDetails.description}
         onChange={handleChange}
+        className={darkMode ? "dark-mode-input" : ""}
       />
       <input
         type="text"
@@ -93,6 +97,15 @@ function NovelForm({ onAddNovel }) {
         placeholder="Main Character Name"
         value={formData.novelDetails.mcName}
         onChange={handleChange}
+        className={darkMode ? "dark-mode-input" : ""}
+      />
+      <input
+        type="text"
+        name="specialCharacteristicOfMc"
+        placeholder="Special Characteristic of MC"
+        value={formData.novelDetails.specialCharacteristicOfMc}
+        onChange={handleChange}
+        className={darkMode ? "dark-mode-input" : ""}
       />
       <label>
         MC Cheating:
@@ -103,13 +116,6 @@ function NovelForm({ onAddNovel }) {
           onChange={handleChange}
         />
       </label>
-      <input
-        type="text"
-        name="specialCharacteristicOfMc"
-        placeholder="Special Characteristic of MC"
-        value={formData.novelDetails.specialCharacteristicOfMc}
-        onChange={handleChange}
-      />
       <button type="submit">Add Novel</button>
     </form>
   );

@@ -169,7 +169,11 @@ function App() {
               element={<NovelForm onAddNovel={handleAddNovel} />}
             />
             <Route path="/library" element={<Library />} />
-            <Route path="/search" element={<Search />} /> {/* add this line */}
+            <Route
+              path="/search"
+              element={<Search darkMode={darkMode} />}
+            />{" "}
+            {/* add this line */}
           </Routes>
           {error && <div>{error}</div>}
         </main>

@@ -334,3 +334,18 @@ input::placeholder {
 .dark-mode .library-table tr {
   border-bottom: 1px solid #333 !important;
 }
+
+.dark-mode-input {
+  background: #222 !important;
+  color: #f7f7fb !important;
+}
+.dark-mode-input::placeholder {
+  color: #f7f7fb !important;
+  opacity: 1;
+}
+
+.dark-mode input::placeholder,
+.dark-mode textarea::placeholder {
+  color: #f7f7fb !important;
+  opacity: 1;
+}

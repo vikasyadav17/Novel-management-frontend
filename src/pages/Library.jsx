@@ -178,11 +178,19 @@ function Library({ darkMode }) {
           <table className="library-table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Title</th>
-                <th>Link</th>
-                <th>Genre</th>
-                <th>Description</th>
+                <th style={{ color: darkMode ? "#f7f7fb" : undefined }}>ID</th>
+                <th style={{ color: darkMode ? "#f7f7fb" : undefined }}>
+                  Title
+                </th>
+                <th style={{ color: darkMode ? "#f7f7fb" : undefined }}>
+                  Link
+                </th>
+                <th style={{ color: darkMode ? "#f7f7fb" : undefined }}>
+                  Genre
+                </th>
+                <th style={{ color: darkMode ? "#f7f7fb" : undefined }}>
+                  Description
+                </th>
                 <th></th>
               </tr>
             </thead>
@@ -191,10 +199,21 @@ function Library({ darkMode }) {
                 const id = novel.novelDetails?.id || novel.id;
                 return (
                   <tr key={id} style={{ minHeight: "48px" }}>
-                    <td style={{ minHeight: "48px" }}>{id}</td>
+                    <td
+                      style={{
+                        minHeight: "48px",
+                        color: darkMode ? "#f7f7fb" : undefined,
+                      }}
+                    >
+                      {id}
+                    </td>
                     <td
                       onDoubleClick={() => handleCellDoubleClick(id, "name")}
-                      style={{ minHeight: "48px", position: "relative" }}
+                      style={{
+                        minHeight: "48px",
+                        position: "relative",
+                        color: darkMode ? "#f7f7fb" : undefined,
+                      }}
                     >
                       {editingCell?.rowId === id &&
                       editingCell?.field === "name" ? (
@@ -205,7 +224,12 @@ function Library({ darkMode }) {
                           onChange={handleEditChange}
                           onBlur={() => handleCellBlur(id)}
                           onKeyDown={handleCellKeyDown}
-                          style={{ width: "100%", minHeight: "32px" }}
+                          style={{
+                            width: "100%",
+                            minHeight: "32px",
+                          }}
+                          placeholder="Title"
+                          className={darkMode ? "dark-mode-input" : ""}
                         />
                       ) : (
                         <span
@@ -215,6 +239,7 @@ function Library({ darkMode }) {
                           onMouseLeave={handleTitleMouseLeave}
                           style={{
                             cursor: novel.originalName ? "pointer" : "default",
+                            color: darkMode ? "#f7f7fb" : undefined,
                           }}
                         >
                           {novel.name}
@@ -223,7 +248,10 @@ function Library({ darkMode }) {
                     </td>
                     <td
                       onDoubleClick={() => handleCellDoubleClick(id, "link")}
-                      style={{ minHeight: "48px" }}
+                      style={{
+                        minHeight: "48px",
+                        color: darkMode ? "#f7f7fb" : undefined,
+                      }}
                     >
                       {editingCell?.rowId === id &&
                       editingCell?.field === "link" ? (
@@ -234,14 +262,25 @@ function Library({ darkMode }) {
                           onChange={handleEditChange}
                           onBlur={() => handleCellBlur(id)}
                           onKeyDown={(e) => handleCellKeyDown(e, id)}
-                          style={{ width: "100%", minHeight: "32px" }}
+                          style={{
+                            width: "100%",
+                            minHeight: "32px",
+                            color: darkMode ? "#f7f7fb" : undefined,
+                            background: darkMode ? "#222" : undefined,
+                          }}
+                          // Fix placeholder color in dark mode
+                          placeholder="Link"
+                          className={darkMode ? "dark-mode-input" : ""}
                         />
                       ) : novel.link ? (
                         <a
                           href={novel.link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{ color: "#2980b9", textDecoration: "none" }}
+                          style={{
+                            color: darkMode ? "#6ec6ff" : "#2980b9",
+                            textDecoration: "none",
+                          }}
                         >
                           {novel.link}
                         </a>
@@ -251,7 +290,10 @@ function Library({ darkMode }) {
                     </td>
                     <td
                       onDoubleClick={() => handleCellDoubleClick(id, "genre")}
-                      style={{ minHeight: "48px" }}
+                      style={{
+                        minHeight: "48px",
+                        color: darkMode ? "#f7f7fb" : undefined,
+                      }}
                     >
                       {editingCell?.rowId === id &&
                       editingCell?.field === "genre" ? (
@@ -262,7 +304,15 @@ function Library({ darkMode }) {
                           onChange={handleEditChange}
                           onBlur={() => handleCellBlur(id)}
                           onKeyDown={(e) => handleCellKeyDown(e, id)}
-                          style={{ width: "100%", minHeight: "32px" }}
+                          style={{
+                            width: "100%",
+                            minHeight: "32px",
+                            color: darkMode ? "#f7f7fb" : undefined,
+                            background: darkMode ? "#222" : undefined,
+                          }}
+                          // Fix placeholder color in dark mode
+                          placeholder="Genre"
+                          className={darkMode ? "dark-mode-input" : ""}
                         />
                       ) : (
                         novel.genre
@@ -272,7 +322,10 @@ function Library({ darkMode }) {
                       onDoubleClick={() =>
                         handleCellDoubleClick(id, "description")
                       }
-                      style={{ minHeight: "48px" }}
+                      style={{
+                        minHeight: "48px",
+                        color: darkMode ? "#f7f7fb" : undefined,
+                      }}
                     >
                       {editingCell?.rowId === id &&
                       editingCell?.field === "description" ? (
@@ -289,10 +342,16 @@ function Library({ darkMode }) {
                             minHeight: "48px",
                             resize: "none",
                           }}
+                          placeholder="Description"
+                          className={darkMode ? "dark-mode-input" : ""}
                         />
                       ) : (
                         <div
-                          style={{ minHeight: "48px", whiteSpace: "pre-line" }}
+                          style={{
+                            minHeight: "48px",
+                            whiteSpace: "pre-line",
+                            color: darkMode ? "#f7f7fb" : undefined,
+                          }}
                         >
                           {novel.novelDetails?.description || ""}
                         </div>

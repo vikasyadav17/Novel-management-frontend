@@ -59,11 +59,12 @@ function Search({ darkMode }) {
             borderRadius: "32px",
             border: "none",
             fontSize: "18px",
-            background: "#fff",
+            background: darkMode ? "#222" : "#fff",
             boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
             outline: "none",
-            color: "#222", // <-- input text black
+            color: darkMode ? "#f7f7fb" : "#222",
           }}
+          className={darkMode ? "dark-mode-input" : ""}
         />
       </div>
       <div
@@ -78,7 +79,9 @@ function Search({ darkMode }) {
             display: "flex",
             alignItems: "center",
             gap: "18px",
-            background: "linear-gradient(90deg, #eaf6ff 0%, #f0f6fa 100%)",
+            background: darkMode
+              ? "linear-gradient(90deg, #222 0%, #333 100%)"
+              : "linear-gradient(90deg, #eaf6ff 0%, #f0f6fa 100%)",
             padding: "16px 36px",
             borderRadius: "36px",
             boxShadow: "0 4px 16px rgba(41,128,185,0.08)",
@@ -92,7 +95,7 @@ function Search({ darkMode }) {
             style={{
               fontWeight: "bold",
               fontSize: "17px",
-              color: "#2980b9",
+              color: darkMode ? "#6ec6ff" : "#2980b9",
               letterSpacing: "0.5px",
               marginRight: "8px",
             }}
@@ -110,8 +113,8 @@ function Search({ darkMode }) {
                 borderRadius: "24px",
                 fontSize: "16px",
                 border: "1.5px solid #2980b9",
-                background: "#fff",
-                color: "#222",
+                background: darkMode ? "#222" : "#fff",
+                color: darkMode ? "#f7f7fb" : "#222",
                 appearance: "none",
                 boxShadow: "0 2px 8px rgba(41,128,185,0.10)",
                 outline: "none",
@@ -119,6 +122,7 @@ function Search({ darkMode }) {
                 transition: "border-color 0.2s",
                 fontWeight: "500",
               }}
+              className={darkMode ? "dark-mode-input" : ""}
               onFocus={(e) => (e.target.style.borderColor = "#145a8a")}
               onBlur={(e) => (e.target.style.borderColor = "#2980b9")}
             >
@@ -138,7 +142,7 @@ function Search({ darkMode }) {
                 transform: "translateY(-50%)",
                 pointerEvents: "none",
                 fontSize: "20px",
-                color: "#2980b9",
+                color: darkMode ? "#6ec6ff" : "#2980b9",
               }}
             >
               ▼
@@ -162,18 +166,21 @@ function Search({ darkMode }) {
       </div>
       <div style={{ maxWidth: "900px", margin: "32px auto 0" }}>
         {loading ? (
-          <div>Loading novels...</div>
+          <div style={{ color: darkMode ? "#f7f7fb" : "#222" }}>
+            Loading novels...
+          </div>
         ) : (
           <ul style={{ listStyle: "none", padding: 0 }}>
             {novels.map((novel) => (
               <li
                 key={novel.novelDetails?.id || novel.id}
                 style={{
-                  background: "#fff",
+                  background: darkMode ? "#222" : "#fff",
                   marginBottom: "12px",
                   padding: "18px 24px",
                   borderRadius: "12px",
                   boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                  color: darkMode ? "#f7f7fb" : "#222",
                 }}
               >
                 <div
@@ -181,6 +188,7 @@ function Search({ darkMode }) {
                     fontSize: "18px",
                     fontWeight: "bold",
                     marginBottom: "4px",
+                    color: darkMode ? "#f7f7fb" : "#222",
                   }}
                 >
                   {novel.name}
@@ -191,7 +199,7 @@ function Search({ darkMode }) {
                       rel="noopener noreferrer"
                       style={{
                         marginLeft: "12px",
-                        color: "#2980b9",
+                        color: darkMode ? "#6ec6ff" : "#2980b9",
                         fontSize: "15px",
                       }}
                     >
@@ -199,10 +207,20 @@ function Search({ darkMode }) {
                     </a>
                   )}
                 </div>
-                <div style={{ fontSize: "15px", color: "#888" }}>
+                <div
+                  style={{
+                    fontSize: "15px",
+                    color: darkMode ? "#bbb" : "#888",
+                  }}
+                >
                   Genre: {novel.genre}
                 </div>
-                <div style={{ marginTop: "6px", color: "#444" }}>
+                <div
+                  style={{
+                    marginTop: "6px",
+                    color: darkMode ? "#f7f7fb" : "#444",
+                  }}
+                >
                   {novel.novelDetails?.description}
                 </div>
               </li>
