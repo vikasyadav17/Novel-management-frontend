@@ -51,4 +51,11 @@ export const novelApi = {
       headers: { "Content-Type": "application/json" },
     });
   },
+
+  getNovelById: async (id) => {
+    return axios.get(`${BASE_URL}/${id}`);
+  },
+
+  getNovelByName: (name) =>
+    axios.get(`http://localhost:8080/novels`, { params: { name } }), // Add method to fetch novel by name
 };

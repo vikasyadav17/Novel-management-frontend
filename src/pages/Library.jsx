@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { novelApi } from "../services/novelApi";
 import logger from "../utils/logger"; // Import the logger
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 function Library({ darkMode }) {
+  const navigate = useNavigate(); // Initialize navigate
   const [novels, setNovels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -44,6 +46,18 @@ function Library({ darkMode }) {
       setError("Failed to load novels");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchNovelByName = async (name) => {
+    logger.info("Fetching novel by name:", name);
+    try {
+      const response = await novelApi.getNovelByName(name); // Call the API method
+      logger.info("Novel fetched successfully:", response.data);
+      setNovels([response.data]); // Update the novels state with the fetched novel
+    } catch (err) {
+      logger.error("Failed to fetch novel by name:", err.message);
+      setError("Failed to fetch novel by name.");
     }
   };
 
@@ -252,82 +266,36 @@ function Library({ darkMode }) {
                     <td
                       style={{
                         minHeight: "48px",
-                        color: darkMode ? "#f7f7fb" : undefined,
+                        color: darkMode ? "#f7f7fb" : "#000", // Set text color to black for normal mode
                       }}
                     >
                       {id}
                     </td>
                     <td
-                      onDoubleClick={() => handleCellDoubleClick(id, "name")}
                       style={{
                         minHeight: "48px",
                         position: "relative",
-                        color: darkMode ? "#f7f7fb" : undefined,
+                        color: darkMode ? "#6ec6ff" : "#2980b9", // Keep link color consistent
+                        cursor: "pointer",
+                        textDecoration: "underline",
                       }}
+                      onClick={() => navigate(`/novel/${id}`)} // Navigate to novel details page
                     >
-                      {editingCell?.rowId === id &&
-                      editingCell?.field === "name" ? (
-                        <input
-                          name="name"
-                          value={editData.name}
-                          autoFocus
-                          onChange={handleEditChange}
-                          onBlur={() => handleCellBlur(id)}
-                          onKeyDown={handleCellKeyDown}
-                          style={{
-                            width: "100%",
-                            minHeight: "32px",
-                          }}
-                          placeholder="Title"
-                          className={darkMode ? "dark-mode-input" : ""}
-                        />
-                      ) : (
-                        <span
-                          onMouseEnter={(e) =>
-                            handleTitleMouseEnter(e, novel.originalName)
-                          }
-                          onMouseLeave={handleTitleMouseLeave}
-                          style={{
-                            cursor: novel.originalName ? "pointer" : "default",
-                            color: darkMode ? "#f7f7fb" : undefined,
-                          }}
-                        >
-                          {novel.name}
-                        </span>
-                      )}
+                      {novel.name}
                     </td>
                     <td
-                      onDoubleClick={() => handleCellDoubleClick(id, "link")}
                       style={{
                         minHeight: "48px",
-                        color: darkMode ? "#f7f7fb" : undefined,
+                        color: darkMode ? "#f7f7fb" : "#000", // Set text color to black for normal mode
                       }}
                     >
-                      {editingCell?.rowId === id &&
-                      editingCell?.field === "link" ? (
-                        <input
-                          name="link"
-                          value={editData.link}
-                          autoFocus
-                          onChange={handleEditChange}
-                          onBlur={() => handleCellBlur(id)}
-                          onKeyDown={(e) => handleCellKeyDown(e, id)}
-                          style={{
-                            width: "100%",
-                            minHeight: "32px",
-                            color: darkMode ? "#f7f7fb" : undefined,
-                            background: darkMode ? "#222" : undefined,
-                          }}
-                          placeholder="Link"
-                          className={darkMode ? "dark-mode-input" : ""}
-                        />
-                      ) : novel.link ? (
+                      {novel.link ? (
                         <a
                           href={novel.link}
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{
-                            color: darkMode ? "#6ec6ff" : "#2980b9",
+                            color: darkMode ? "#6ec6ff" : "#2980b9", // Keep link color consistent
                             textDecoration: "none",
                           }}
                         >
@@ -338,75 +306,21 @@ function Library({ darkMode }) {
                       )}
                     </td>
                     <td
-                      onDoubleClick={() => handleCellDoubleClick(id, "genre")}
                       style={{
                         minHeight: "48px",
-                        color: darkMode ? "#f7f7fb" : undefined,
+                        color: darkMode ? "#f7f7fb" : "#000", // Set text color to black for normal mode
                       }}
                     >
-                      {editingCell?.rowId === id &&
-                      editingCell?.field === "genre" ? (
-                        <input
-                          name="genre"
-                          value={editData.genre}
-                          autoFocus
-                          onChange={handleEditChange}
-                          onBlur={() => handleCellBlur(id)}
-                          onKeyDown={(e) => handleCellKeyDown(e, id)}
-                          style={{
-                            width: "100%",
-                            minHeight: "32px",
-                            color: darkMode ? "#f7f7fb" : undefined,
-                            background: darkMode ? "#222" : undefined,
-                          }}
-                          placeholder="Genre"
-                          className={darkMode ? "dark-mode-input" : ""}
-                        />
-                      ) : (
-                        novel.genre
-                      )}
+                      {novel.genre}
                     </td>
                     <td
-                      onDoubleClick={() =>
-                        handleCellDoubleClick(id, "description")
-                      }
                       style={{
                         minHeight: "48px",
-                        color: darkMode ? "#f7f7fb" : undefined,
+                        color: darkMode ? "#f7f7fb" : "#000", // Set text color to black for normal mode
                       }}
                     >
-                      {editingCell?.rowId === id &&
-                      editingCell?.field === "description" ? (
-                        <textarea
-                          name="description"
-                          value={editData.description} // Ensure description is editable
-                          autoFocus
-                          onChange={handleEditChange}
-                          onBlur={() => handleCellBlur(id)}
-                          onKeyDown={(e) => handleCellKeyDown(e, id)}
-                          rows={3}
-                          style={{
-                            width: "100%",
-                            minHeight: "48px",
-                            resize: "none",
-                          }}
-                          placeholder="Description"
-                          className={darkMode ? "dark-mode-input" : ""}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            minHeight: "48px",
-                            whiteSpace: "pre-line",
-                            color: darkMode ? "#f7f7fb" : undefined,
-                          }}
-                        >
-                          {novel.novelDetails?.description || ""}{" "}
-                          {/* Display description */}
-                        </div>
-                      )}
+                      {novel.novelDetails?.description || ""}
                     </td>
-                    <td>{/* Pencil button removed */}</td>
                   </tr>
                 );
               })}
@@ -448,17 +362,21 @@ function Library({ darkMode }) {
                 position: "absolute",
                 left: tooltip.x,
                 top: tooltip.y,
-                background: "#fff",
-                color: "#000",
+                background: darkMode ? "#444" : "#fff", // Fix tooltip background
+                color: darkMode ? "#f7f7fb" : "#000", // Set tooltip text color to black for normal mode
                 border: "1px solid #ccc",
                 padding: "4px 8px",
                 borderRadius: "4px",
                 zIndex: 9999,
                 boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                pointerEvents: "none",
+                pointerEvents: "auto",
                 fontSize: "14px",
-                transform: "translateY(-100%)", // ensure it's above
+                transform: "translateY(-100%)",
               }}
+              onMouseEnter={() =>
+                setTooltip((prev) => ({ ...prev, show: true }))
+              }
+              onMouseLeave={handleTitleMouseLeave}
             >
               {tooltip.text}
             </div>

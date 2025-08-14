@@ -1,0 +1,48 @@
+/* Common styling */
+.novel-details {
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Default light mode styles */
+.novel-details {
+  background-color: #ffffff !important;
+  color: #333333 !important;
+}
+
+/* Dark mode styles - more specific and with !important */
+html body .novel-details.dark-mode {
+  background-color: #121212 !important;
+  color: #ffffff !important;
+}
+
+/* Make all text elements white in dark mode with !important */
+.novel-details.dark-mode p,
+.novel-details.dark-mode h1,
+.novel-details.dark-mode h2,
+.novel-details.dark-mode h3,
+.novel-details.dark-mode h4,
+.novel-details.dark-mode h5,
+.novel-details.dark-mode h6,
+.novel-details.dark-mode div,
+.novel-details.dark-mode span {
+  color: #ffffff !important;
+}
+
+.novel-details.dark-mode strong {
+  color: #ffffff !important;
+  font-weight: bold;
+}
+
+/* Style links in dark mode */
+.novel-details.dark-mode a {
+  color: #61dafb !important;
+  text-decoration: underline;
+}
+
+/* Style any potential list items */
+.novel-details.dark-mode li {
+  color: #ffffff !important;
+}

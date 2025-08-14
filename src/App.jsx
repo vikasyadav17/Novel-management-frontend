@@ -5,6 +5,7 @@ import NovelForm from "./components/NovelForm";
 import Library from "./pages/Library";
 import Search from "./pages/Search"; // import Search page
 import BulkUploadPage from "./pages/BulkUploadPage"; // Import BulkUploadPage
+import NovelDetails from "./pages/NovelDetails"; // Import NovelDetails
 import "./App.css";
 
 function App() {
@@ -214,6 +215,8 @@ function App() {
               path="/bulk-upload"
               element={<BulkUploadPage onBulkUpload={handleBulkUpload} />}
             />
+            <Route path="/novel/:id" element={<NovelDetails />} />{" "}
+            {/* Add route for novel details */}
           </Routes>
           {error && <div>{error}</div>}
         </main>
