@@ -153,3 +153,127 @@ body {
 .novel-form button:hover {
   background: #2980b9;
 }
+
+/* Table Styles */
+.library-table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 2rem;
+}
+
+.library-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+  font-size: 1rem;
+  min-width: 600px;
+  table-layout: fixed; /* Fix column widths */
+}
+
+.library-table th:nth-child(1), /* ID */
+.library-table td:nth-child(1) {
+  width: 60px;
+}
+.library-table th:nth-child(2), /* Title */
+.library-table td:nth-child(2) {
+  width: 180px;
+  color: #000; /* Change text color to black */
+}
+.library-table th:nth-child(3), /* Original Name */
+.library.table td:nth-child(3) {
+  width: 180px;
+}
+.library-table th:nth-child(4), /* Genre */
+.library-table td:nth-child(4) {
+  width: 120px;
+}
+.library-table th:nth-child(5), /* Description */
+.library-table td:nth-child(5) {
+  width: 320px;
+}
+.library-table th:nth-child(6), /* Actions */
+.library-table td:nth-child(6) {
+  width: 80px;
+}
+
+.library-table th,
+.library-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.library-table th {
+  background: #f5f7fa;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.library-table tr:last-child td {
+  border-bottom: none;
+}
+
+.library-table a {
+  color: #2980b9;
+  text-decoration: none;
+}
+
+.library-table a:hover {
+  text-decoration: underline;
+}
+
+.library-table td:nth-child(1), /* ID */
+.library-table td:nth-child(3), /* Original Name */
+.library-table td:nth-child(4), /* Genre */
+.library-table td:nth-child(5)  /* Description */ {
+  color: #000;
+}
+
+.library-table input,
+.library-table textarea {
+  background: white; /* Match table cell background */
+  border: none; /* Remove border */
+  font-size: 1rem;
+  color: #000;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+  resize: none; /* Prevent resizing for textarea */
+}
+
+.library-table input:focus,
+.library-table textarea:focus {
+  outline: none;
+  background: white; /* Keep background white on focus */
+}
+
+.library-table td {
+  white-space: pre-wrap; /* Allow multi-line content */
+  overflow: visible;
+  text-overflow: unset;
+  word-break: break-word;
+}
+
+/* Edit Pencil Button Styles */
+.edit-pencil-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.edit-pencil-btn svg {
+  opacity: 0.6;
+  transition: opacity 0.2s, stroke 0.2s;
+}
+
+.edit-pencil-btn:hover svg {
+  opacity: 1;
+  stroke: #1d5c99;
+}
