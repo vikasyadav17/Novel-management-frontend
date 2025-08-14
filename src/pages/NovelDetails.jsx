@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useState, useEffect, useContext } from "react";
 import { novelApi } from "../services/novelApi";
 import { ThemeContext } from "../context/ThemeContext";
-import swordGodImage from "../assets/images/sword_god.jpg"; // Updated path to image in assets/images
+import swordGodImage from "../assets/images/sword_god.jpg";
 import "./NovelDetails.css";
 
 function NovelDetails() {
@@ -87,6 +87,44 @@ function NovelDetails() {
     fontWeight: "500",
   };
 
+  // Add function to handle bulk upload of novel details and opinion
+  const handleBulkUpload = async () => {
+    if (!novel) return;
+
+    try {
+      // Prepare the data to include both novel details and opinion
+      const bulkData = {
+        novelId: novel._id,
+        novelDetails: novel.novelDetails || {},
+        novelOpinion: novel.novelOpinion || {},
+      };
+
+      console.log("Sending bulk data:", bulkData);
+
+      // Send the bulk data to the backend
+      const response = await novelApi.bulkUpload(bulkData);
+
+      // Handle successful upload
+      if (response.status === 200) {
+        alert("Novel details and opinion uploaded successfully");
+      }
+    } catch (error) {
+      console.error("Error in bulk upload:", error);
+      alert("Failed to upload novel details and opinion");
+    }
+  };
+
+  // Add effect to automatically send both novelDetails and novelOpinion
+  // when the tab for bulk upload is active
+  useEffect(() => {
+    // Check if we're in bulk upload mode - this could be based on a prop or URL parameter
+    const isBulkUploadMode = window.location.search.includes("bulkUpload=true");
+
+    if (isBulkUploadMode && novel && !loading) {
+      handleBulkUpload();
+    }
+  }, [novel, loading]);
+
   if (loading)
     return (
       <div
@@ -165,6 +203,25 @@ function NovelDetails() {
         </span>
       </div>
 
+      {/* Add tags section - handling as a string */}
+      {novel.tags && novel.tags.trim() !== "" && (
+        <div style={{ marginBottom: "1.5rem" }}>
+          <strong style={labelStyle}>Tags:</strong>
+          <span
+            style={{
+              ...textStyle,
+              backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
+              padding: "0.25rem 0.75rem",
+              borderRadius: "20px",
+              fontSize: "0.95rem",
+              marginLeft: "8px",
+            }}
+          >
+            {novel.tags}
+          </span>
+        </div>
+      )}
+
       <div style={{ marginBottom: "2rem" }}>
         <strong
           style={{
@@ -204,5 +261,10 @@ function NovelDetails() {
     </div>
   );
 }
+
+// Add this function to the novelApi service (to be implemented in novelApi.js)
+// novelApi.bulkUpload = async (data) => {
+//   return await axios.post('/api/novels/bulk-upload', data);
+// };
 
 export default NovelDetails;

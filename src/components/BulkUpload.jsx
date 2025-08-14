@@ -43,15 +43,27 @@ function BulkUpload({ onBulkUpload, onUploadComplete }) {
           novelDetails: {
             description: novel.Description || novel.description || "N/A",
             mcName: novel.McName || novel.mcName || null,
-            mcCheating: novel.McCheating || novel.mcCheating || false,
+            tags: novel.Tags || novel.tags || "", // Changed to empty string as default
             specialCharacteristicOfMc:
               novel.SpecialCharacteristicOfMc ||
               novel.specialCharacteristicOfMc ||
               null,
           },
+          // Add novelOpinion to the formatted data
+          novelOpinion: {
+            rating: novel.Rating || novel.rating || 0,
+            chaptersRead: novel.ChaptersRead || novel.chaptersRead || 0,
+            favorite: novel.Favorite || novel.favorite || false,
+            worthToContinue:
+              novel.WorthToContinue || novel.worthToContinue || false,
+            comments: novel.Comments || novel.comments || "",
+          },
         }));
 
-        logger.info("Formatted novels with details:", formattedNovels);
+        logger.info(
+          "Formatted novels with details and opinions:",
+          formattedNovels
+        );
 
         await novelApi.bulkUploadNovels(formattedNovels);
         onUploadComplete(formattedNovels, null); // Pass success message to parent

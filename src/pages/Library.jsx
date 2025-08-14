@@ -239,23 +239,77 @@ function Library({ darkMode }) {
         <div
           className={`library-table-container${darkMode ? " dark-mode" : ""}`}
         >
-          <table className="library-table">
+          <table
+            className="library-table"
+            style={{
+              width: "100%",
+              tableLayout: "fixed", // This forces the columns to distribute evenly
+            }}
+          >
+            <colgroup>
+              <col style={{ width: "5%" }} /> {/* ID */}
+              <col style={{ width: "25%" }} /> {/* Title */}
+              <col style={{ width: "15%" }} /> {/* Link */}
+              <col style={{ width: "15%" }} /> {/* Genre */}
+              <col style={{ width: "25%" }} /> {/* Rating */}
+              <col style={{ width: "15%" }} /> {/* Worth to Continue */}
+            </colgroup>
             <thead>
               <tr>
-                <th style={{ color: darkMode ? "#f7f7fb" : undefined }}>ID</th>
-                <th style={{ color: darkMode ? "#f7f7fb" : undefined }}>
+                <th
+                  style={{
+                    color: darkMode ? "#f7f7fb" : undefined,
+                    padding: "10px",
+                    textAlign: "left",
+                  }}
+                >
+                  ID
+                </th>
+                <th
+                  style={{
+                    color: darkMode ? "#f7f7fb" : undefined,
+                    padding: "10px",
+                    textAlign: "left",
+                  }}
+                >
                   Title
                 </th>
-                <th style={{ color: darkMode ? "#f7f7fb" : undefined }}>
+                <th
+                  style={{
+                    color: darkMode ? "#f7f7fb" : undefined,
+                    padding: "10px",
+                    textAlign: "left",
+                  }}
+                >
                   Link
                 </th>
-                <th style={{ color: darkMode ? "#f7f7fb" : undefined }}>
+                <th
+                  style={{
+                    color: darkMode ? "#f7f7fb" : undefined,
+                    padding: "10px",
+                    textAlign: "left",
+                  }}
+                >
                   Genre
                 </th>
-                <th style={{ color: darkMode ? "#f7f7fb" : undefined }}>
-                  Description
+                <th
+                  style={{
+                    color: darkMode ? "#f7f7fb" : undefined,
+                    padding: "10px",
+                    textAlign: "center",
+                  }}
+                >
+                  Rating
                 </th>
-                <th></th>
+                <th
+                  style={{
+                    color: darkMode ? "#f7f7fb" : undefined,
+                    padding: "10px",
+                    textAlign: "center",
+                  }}
+                >
+                  Worth to Continue
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -266,7 +320,7 @@ function Library({ darkMode }) {
                     <td
                       style={{
                         minHeight: "48px",
-                        color: darkMode ? "#f7f7fb" : "#000", // Set text color to black for normal mode
+                        color: darkMode ? "#f7f7fb" : "#000",
                       }}
                     >
                       {id}
@@ -275,18 +329,18 @@ function Library({ darkMode }) {
                       style={{
                         minHeight: "48px",
                         position: "relative",
-                        color: darkMode ? "#6ec6ff" : "#2980b9", // Keep link color consistent
+                        color: darkMode ? "#6ec6ff" : "#2980b9",
                         cursor: "pointer",
                         textDecoration: "underline",
                       }}
-                      onClick={() => navigate(`/novel/${id}`)} // Navigate to novel details page
+                      onClick={() => navigate(`/novel/${id}`)}
                     >
                       {novel.name}
                     </td>
                     <td
                       style={{
                         minHeight: "48px",
-                        color: darkMode ? "#f7f7fb" : "#000", // Set text color to black for normal mode
+                        color: darkMode ? "#f7f7fb" : "#000",
                       }}
                     >
                       {novel.link ? (
@@ -295,7 +349,7 @@ function Library({ darkMode }) {
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{
-                            color: darkMode ? "#6ec6ff" : "#2980b9", // Keep link color consistent
+                            color: darkMode ? "#6ec6ff" : "#2980b9",
                             textDecoration: "none",
                           }}
                         >
@@ -308,7 +362,7 @@ function Library({ darkMode }) {
                     <td
                       style={{
                         minHeight: "48px",
-                        color: darkMode ? "#f7f7fb" : "#000", // Set text color to black for normal mode
+                        color: darkMode ? "#f7f7fb" : "#000",
                       }}
                     >
                       {novel.genre}
@@ -316,10 +370,60 @@ function Library({ darkMode }) {
                     <td
                       style={{
                         minHeight: "48px",
-                        color: darkMode ? "#f7f7fb" : "#000", // Set text color to black for normal mode
+                        color: darkMode ? "#f7f7fb" : "#000",
+                        textAlign: "center",
+                        paddingRight: "10px",
                       }}
                     >
-                      {novel.novelDetails?.description || ""}
+                      {novel.novelOpinion?.rating !== undefined &&
+                      novel.novelOpinion?.rating !== null ? (
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: "#FFD700",
+                              fontSize: "1.5rem",
+                              letterSpacing: "3px",
+                            }}
+                          >
+                            {Array.from({ length: 10 }, (_, i) => (
+                              <span key={i} style={{ display: "inline-block" }}>
+                                {i < novel.novelOpinion.rating ? "★" : "☆"}
+                              </span>
+                            ))}
+                          </span>
+                        </div>
+                      ) : (
+                        "N/A"
+                      )}
+                    </td>
+                    <td
+                      style={{
+                        minHeight: "48px",
+                        color: darkMode ? "#f7f7fb" : "#000",
+                        textAlign: "center",
+                      }}
+                    >
+                      {novel.novelOpinion?.worthToContinue !== undefined ? (
+                        <span
+                          style={{
+                            color: novel.novelOpinion.worthToContinue
+                              ? "#4CAF50"
+                              : "#F44336",
+                            fontSize: "1.4rem",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {novel.novelOpinion.worthToContinue ? "✓" : "✗"}
+                        </span>
+                      ) : (
+                        "N/A"
+                      )}
                     </td>
                   </tr>
                 );
