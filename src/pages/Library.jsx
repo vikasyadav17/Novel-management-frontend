@@ -10,6 +10,7 @@ import { getCoverImage, handleImageError } from "../utils/coverUtils";
 function Library({ darkMode }) {
   const navigate = useNavigate();
   const [novels, setNovels] = useState([]);
+  const [filteredNovels, setFilteredNovels] = useState([]); // Initialize as empty array
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editId, setEditId] = useState(null);
@@ -31,6 +32,12 @@ function Library({ darkMode }) {
   const [renderError, setRenderError] = useState(null);
   const [successModal, setSuccessModal] = useState(false); // Add success modal state
 
+  // New filter states
+  const [genreFilter, setGenreFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [genres, setGenres] = useState([]);
+  const [statuses, setStatuses] = useState([]);
+
   useEffect(() => {
     document.title = "Novel Updates";
   }, []);
@@ -39,12 +46,53 @@ function Library({ darkMode }) {
     loadNovels();
   }, []);
 
+  // FIXED: Move applyFilters inside this effect to prevent infinite loops
+  useEffect(() => {
+    // Only apply filters if novels array has data
+    if (novels.length > 0) {
+      let result = [...novels];
+
+      // Apply genre filter if selected
+      if (genreFilter) {
+        result = result.filter((novel) => novel.genre === genreFilter);
+      }
+
+      // Apply status filter if selected
+      if (statusFilter) {
+        result = result.filter(
+          (novel) => novel.novelDetails?.status === statusFilter
+        );
+      }
+
+      setFilteredNovels(result);
+    }
+  }, [novels, genreFilter, statusFilter]); // Keep these dependencies
+
   const loadNovels = async () => {
     logger.info("Loading novels...");
     try {
       const response = await novelApi.getAllNovels();
       logger.info("Novels loaded successfully:", response.data);
+
+      // Set novels data
       setNovels(response.data);
+      // REMOVED: Don't set filteredNovels here, let the effect handle it
+
+      // Extract unique genres and statuses for filters
+      const uniqueGenres = Array.from(
+        new Set(response.data.map((novel) => novel.genre).filter(Boolean))
+      ).sort();
+
+      const uniqueStatuses = Array.from(
+        new Set(
+          response.data
+            .map((novel) => novel.novelDetails?.status)
+            .filter(Boolean)
+        )
+      ).sort();
+
+      setGenres(uniqueGenres);
+      setStatuses(uniqueStatuses);
     } catch (err) {
       logger.error("Failed to load novels:", err.message);
       setError("Failed to load novels");
@@ -52,6 +100,18 @@ function Library({ darkMode }) {
       setLoading(false);
     }
   };
+
+  // Clear filters function (keep this as a separate function)
+  const clearFilters = () => {
+    setGenreFilter("");
+    setStatusFilter("");
+    // REMOVED: Don't call setCurrentPage here
+  };
+
+  // ADDED: This effect handles resetting the page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [genreFilter, statusFilter]);
 
   const fetchNovelByName = async (name) => {
     logger.info("Fetching novel by name:", name);
@@ -210,7 +270,8 @@ function Library({ darkMode }) {
     setCurrentPage(pageNumber);
   };
 
-  const paginatedNovels = novels.slice(
+  // Modify pagination to use filteredNovels instead of novels
+  const paginatedNovels = filteredNovels.slice(
     (currentPage - 1) * novelsPerPage,
     currentPage * novelsPerPage
   );
@@ -236,7 +297,7 @@ function Library({ darkMode }) {
     ];
 
     // Map novels to rows of data
-    const rows = novels.map((novel) => [
+    const rows = filteredNovels.map((novel) => [
       novel.name || "",
       novel.originalName || "",
       novel.genre || "",
@@ -398,7 +459,7 @@ function Library({ darkMode }) {
     } else {
       content = (
         <div className={`library-container${darkMode ? " dark-mode" : ""}`}>
-          {/* Header with total novels count */}
+          {/* Header with total novels count and filters */}
           <div
             style={{
               display: "flex",
@@ -406,8 +467,11 @@ function Library({ darkMode }) {
               alignItems: "center",
               marginBottom: "25px",
               padding: "0 10px",
+              flexWrap: "wrap",
+              gap: "15px",
             }}
           >
+            {/* Left side - Collection count and export */}
             <div
               style={{
                 color: darkMode ? "#f7f7fb" : "#333",
@@ -416,10 +480,10 @@ function Library({ darkMode }) {
                 display: "flex",
                 alignItems: "center",
                 gap: "8px",
-                cursor: "pointer", // Add cursor pointer to indicate it's clickable
+                cursor: "pointer",
               }}
-              onClick={exportToExcel} // Add click handler
-              title="Click to export library to Excel" // Add tooltip
+              onClick={exportToExcel}
+              title="Click to export library to Excel"
             >
               <svg
                 width="20"
@@ -456,313 +520,537 @@ function Library({ darkMode }) {
                 <line x1="12" y1="15" x2="12" y2="3"></line>
               </svg>
             </div>
-          </div>
 
-          {/* Novel cards grid */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-              gap: "20px",
-              marginBottom: "30px",
-            }}
-          >
-            {paginatedNovels.map((novel) => {
-              const id = novel.novelDetails?.id || novel.id;
-              return (
-                <div
-                  key={id}
+            {/* Right side - Filters */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "15px",
+                flexWrap: "wrap",
+              }}
+            >
+              {/* Genre Filter */}
+              <div style={{ position: "relative", minWidth: "180px" }}>
+                <select
+                  value={genreFilter}
+                  onChange={(e) => setGenreFilter(e.target.value)}
                   style={{
-                    backgroundColor: darkMode ? "#1e1e1e" : "#fff",
-                    borderRadius: "12px",
-                    overflow: "hidden",
-                    boxShadow: darkMode
-                      ? "0 4px 12px rgba(0, 0, 0, 0.3)"
-                      : "0 4px 12px rgba(0, 0, 0, 0.05)",
-                    transition: "transform 0.2s, box-shadow 0.2s",
+                    width: "100%",
+                    padding: "8px 32px 8px 12px",
+                    borderRadius: "8px",
+                    border: `1px solid ${darkMode ? "#444" : "#e0e0e0"}`,
+                    background: darkMode ? "#333" : "#fff",
+                    color: darkMode ? "#f7f7fb" : "#333",
+                    appearance: "none",
                     cursor: "pointer",
-                    border: `1px solid ${
-                      darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"
-                    }`,
-                    position: "relative",
-                    height: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                  onClick={() => navigate(`/novel/${id}`)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-3px)";
-                    e.currentTarget.style.boxShadow = darkMode
-                      ? "0 8px 24px rgba(0, 0, 0, 0.4)"
-                      : "0 8px 24px rgba(0, 0, 0, 0.1)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = darkMode
-                      ? "0 4px 12px rgba(0, 0, 0, 0.3)"
-                      : "0 4px 12px rgba(0, 0, 0, 0.05)";
+                    fontSize: "0.95rem",
                   }}
                 >
-                  {/* Status badge */}
-                  {novel.novelDetails?.status && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "12px",
-                        right: "12px",
-                        zIndex: 1,
-                      }}
-                    >
-                      <span
-                        style={{
-                          padding: "4px 10px",
-                          borderRadius: "20px",
-                          fontSize: "0.75rem",
-                          fontWeight: "600",
-                          backgroundColor:
-                            novel.novelDetails.status === "Reading"
-                              ? "#4CAF50"
-                              : novel.novelDetails.status === "Completed"
-                              ? "#2196F3"
-                              : novel.novelDetails.status === "Dropped"
-                              ? "#F44336"
-                              : novel.novelDetails.status === "On Hold"
-                              ? "#FF9800"
-                              : novel.novelDetails.status === "Plan to Read"
-                              ? "#9C27B0"
-                              : "#757575",
-                          color: "white",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                        }}
-                      >
-                        {novel.novelDetails.status}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Cover Image */}
-                  <div
-                    style={{
-                      height: "250px", // Increased from 180px to 250px
-                      overflow: "hidden",
-                      borderTopLeftRadius: "12px",
-                      borderTopRightRadius: "12px",
-                      position: "relative",
-                      backgroundColor: darkMode ? "#272727" : "#f5f5f5", // Added background color
-                    }}
+                  <option value="">All Genres</option>
+                  {genres.map((genre) => (
+                    <option key={genre} value={genre}>
+                      {genre}
+                    </option>
+                  ))}
+                </select>
+                <div
+                  style={{
+                    position: "absolute",
+                    right: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    pointerEvents: "none",
+                  }}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={darkMode ? "#f7f7fb" : "#333"}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   >
-                    <img
-                      src={getCoverImage(novel)}
-                      alt={novel.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "contain", // Changed from "cover" to "contain" to show full image
-                        padding: "5px", // Added padding to prevent image from touching edges
-                      }}
-                      onError={handleImageError} // Use the shared error handler
-                    />
-                    <div
-                      style={{
-                        position: "absolute",
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        background:
-                          "linear-gradient(transparent, rgba(0,0,0,0.7))",
-                        height: "35%", // Reduced overlay height
-                      }}
-                    />
-                  </div>
-
-                  {/* Card header */}
-                  <div
-                    style={{
-                      padding: "16px",
-                      borderBottom: `1px solid ${
-                        darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"
-                      }`,
-                    }}
-                  >
-                    <h3
-                      style={{
-                        margin: 0,
-                        fontSize: "1.2rem",
-                        fontWeight: "600",
-                        color: darkMode ? "#f7f7fb" : "#333",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        lineHeight: "1.4",
-                        height: "2.8em",
-                      }}
-                    >
-                      {novel.name}
-                    </h3>
-                  </div>
-
-                  {/* Card content */}
-                  <div
-                    style={{
-                      padding: "16px",
-                      flex: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "12px",
-                      color: darkMode
-                        ? "rgba(255,255,255,0.8)"
-                        : "rgba(0,0,0,0.7)",
-                    }}
-                  >
-                    {/* Genre */}
-                    {novel.genre && (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            opacity: 0.7,
-                            fontSize: "0.9rem",
-                            flexShrink: 0,
-                            width: "70px",
-                          }}
-                        >
-                          Genre:
-                        </span>
-                        <span
-                          style={{ fontSize: "0.95rem", fontWeight: "500" }}
-                        >
-                          {novel.genre}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Main Character Name */}
-                    {novel.novelDetails?.mcName && (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            opacity: 0.7,
-                            fontSize: "0.9rem",
-                            flexShrink: 0,
-                            width: "70px",
-                          }}
-                        >
-                          MC:
-                        </span>
-                        <span
-                          style={{ fontSize: "0.95rem", fontWeight: "500" }}
-                        >
-                          {novel.novelDetails.mcName}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Updated Chapters display with read/total format or N/A */}
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}
-                    >
-                      <span
-                        style={{
-                          opacity: 0.7,
-                          fontSize: "0.9rem",
-                          flexShrink: 0,
-                          width: "70px",
-                        }}
-                      >
-                        Chapters:
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "0.95rem",
-                          fontWeight: "600",
-                          backgroundColor: darkMode
-                            ? "rgba(97, 218, 251, 0.1)"
-                            : "rgba(0, 102, 204, 0.05)",
-                          padding: "2px 8px",
-                          borderRadius: "4px",
-                          color: darkMode ? "#61dafb" : "#0066cc",
-                        }}
-                      >
-                        {!novel.novelDetails?.totalChapters ||
-                        novel.novelDetails.totalChapters === 0
-                          ? "N/A"
-                          : `${novel.novelOpinion?.chaptersRead || 0}/${
-                              novel.novelDetails.totalChapters
-                            }`}
-                      </span>
-                    </div>
-
-                    {/* Link - clickable separately */}
-                    {novel.link && (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                          marginTop: "auto",
-                          paddingTop: "8px",
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <a
-                          href={novel.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            color: darkMode ? "#61dafb" : "#0066cc",
-                            textDecoration: "none",
-                            fontSize: "0.9rem",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "4px",
-                            padding: "4px 0",
-                          }}
-                        >
-                          Visit Source
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                            <polyline points="15,3 21,3 21,9"></polyline>
-                            <line x1="10" y1="14" x2="21" y2="3"></line>
-                          </svg>
-                        </a>
-                      </div>
-                    )}
-                  </div>
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
                 </div>
-              );
-            })}
+              </div>
+
+              {/* Status Filter */}
+              <div style={{ position: "relative", minWidth: "180px" }}>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "8px 32px 8px 12px",
+                    borderRadius: "8px",
+                    border: `1px solid ${darkMode ? "#444" : "#e0e0e0"}`,
+                    background: darkMode ? "#333" : "#fff",
+                    color: darkMode ? "#f7f7fb" : "#333",
+                    appearance: "none",
+                    cursor: "pointer",
+                    fontSize: "0.95rem",
+                  }}
+                >
+                  <option value="">All Statuses</option>
+                  {statuses.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+                <div
+                  style={{
+                    position: "absolute",
+                    right: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    pointerEvents: "none",
+                  }}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={darkMode ? "#f7f7fb" : "#333"}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Clear Filters Button - Only show when filters are applied */}
+              {(genreFilter || statusFilter) && (
+                <button
+                  onClick={clearFilters}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    padding: "8px 12px",
+                    background: darkMode ? "#444" : "#f0f0f0",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    color: darkMode ? "#f7f7fb" : "#333",
+                    fontSize: "0.9rem",
+                  }}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                  Clear Filters
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Pagination controls */}
-          {novels.length > novelsPerPage && (
+          {/* Filter Results Info - Show when filters are active */}
+          {(genreFilter || statusFilter) && (
+            <div
+              style={{
+                padding: "10px 15px",
+                backgroundColor: darkMode
+                  ? "rgba(97, 218, 251, 0.1)"
+                  : "rgba(0, 102, 204, 0.05)",
+                borderRadius: "8px",
+                marginBottom: "20px",
+                fontSize: "0.95rem",
+                color: darkMode ? "#f7f7fb" : "#333",
+              }}
+            >
+              Showing {filteredNovels.length} of {novels.length} novels
+              {genreFilter && ` • Genre: ${genreFilter}`}
+              {statusFilter && ` • Status: ${statusFilter}`}
+            </div>
+          )}
+
+          {/* Empty state for filtered results */}
+          {filteredNovels.length === 0 && novels.length > 0 && (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "40px 20px",
+                backgroundColor: darkMode
+                  ? "rgba(255,255,255,0.03)"
+                  : "#f9f9f9",
+                borderRadius: "12px",
+                marginBottom: "30px",
+              }}
+            >
+              <svg
+                width="60"
+                height="60"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={darkMode ? "#61dafb" : "#0066cc"}
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ marginBottom: "15px" }}
+              >
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+              <h3
+                style={{
+                  marginBottom: "10px",
+                  color: darkMode ? "#f7f7fb" : "#333",
+                }}
+              >
+                No novels match your filters
+              </h3>
+              <p
+                style={{
+                  color: darkMode ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.6)",
+                }}
+              >
+                Try changing your filter criteria or{" "}
+                <button
+                  onClick={clearFilters}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: darkMode ? "#61dafb" : "#0066cc",
+                    cursor: "pointer",
+                    textDecoration: "underline",
+                    padding: "0 5px",
+                    fontSize: "inherit",
+                  }}
+                >
+                  clear all filters
+                </button>
+              </p>
+            </div>
+          )}
+
+          {/* Novel cards grid - using filteredNovels instead of novels */}
+          {filteredNovels.length > 0 && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+                gap: "20px",
+                marginBottom: "30px",
+              }}
+            >
+              {paginatedNovels.map((novel) => {
+                const id = novel.novelDetails?.id || novel.id;
+                return (
+                  <div
+                    key={id}
+                    style={{
+                      backgroundColor: darkMode ? "#1e1e1e" : "#fff",
+                      borderRadius: "12px",
+                      overflow: "hidden",
+                      boxShadow: darkMode
+                        ? "0 4px 12px rgba(0, 0, 0, 0.3)"
+                        : "0 4px 12px rgba(0, 0, 0, 0.05)",
+                      transition: "transform 0.2s, box-shadow 0.2s",
+                      cursor: "pointer",
+                      border: `1px solid ${
+                        darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"
+                      }`,
+                      position: "relative",
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                    onClick={() => navigate(`/novel/${id}`)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "translateY(-3px)";
+                      e.currentTarget.style.boxShadow = darkMode
+                        ? "0 8px 24px rgba(0, 0, 0, 0.4)"
+                        : "0 8px 24px rgba(0, 0, 0, 0.1)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = darkMode
+                        ? "0 4px 12px rgba(0, 0, 0, 0.3)"
+                        : "0 4px 12px rgba(0, 0, 0, 0.05)";
+                    }}
+                  >
+                    {/* Status badge */}
+                    {novel.novelDetails?.status && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "12px",
+                          right: "12px",
+                          zIndex: 1,
+                        }}
+                      >
+                        <span
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: "20px",
+                            fontSize: "0.75rem",
+                            fontWeight: "600",
+                            backgroundColor:
+                              novel.novelDetails.status === "Reading"
+                                ? "#4CAF50"
+                                : novel.novelDetails.status === "Completed"
+                                ? "#2196F3"
+                                : novel.novelDetails.status === "Dropped"
+                                ? "#F44336"
+                                : novel.novelDetails.status === "On Hold"
+                                ? "#FF9800"
+                                : novel.novelDetails.status === "Plan to Read"
+                                ? "#9C27B0"
+                                : "#757575",
+                            color: "white",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                          }}
+                        >
+                          {novel.novelDetails.status}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Cover Image */}
+                    <div
+                      style={{
+                        height: "250px", // Increased from 180px to 250px
+                        overflow: "hidden",
+                        borderTopLeftRadius: "12px",
+                        borderTopRightRadius: "12px",
+                        position: "relative",
+                        backgroundColor: darkMode ? "#272727" : "#f5f5f5", // Added background color
+                      }}
+                    >
+                      <img
+                        src={getCoverImage(novel)}
+                        alt={novel.name}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain", // Changed from "cover" to "contain" to show full image
+                          padding: "5px", // Added padding to prevent image from touching edges
+                        }}
+                        onError={handleImageError} // Use the shared error handler
+                      />
+                      <div
+                        style={{
+                          position: "absolute",
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          background:
+                            "linear-gradient(transparent, rgba(0,0,0,0.7))",
+                          height: "35%", // Reduced overlay height
+                        }}
+                      />
+                    </div>
+
+                    {/* Card header */}
+                    <div
+                      style={{
+                        padding: "16px",
+                        borderBottom: `1px solid ${
+                          darkMode
+                            ? "rgba(255,255,255,0.05)"
+                            : "rgba(0,0,0,0.05)"
+                        }`,
+                      }}
+                    >
+                      <h3
+                        style={{
+                          margin: 0,
+                          fontSize: "1.2rem",
+                          fontWeight: "600",
+                          color: darkMode ? "#f7f7fb" : "#333",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          lineHeight: "1.4",
+                          height: "2.8em",
+                        }}
+                      >
+                        {novel.name}
+                      </h3>
+                    </div>
+
+                    {/* Card content */}
+                    <div
+                      style={{
+                        padding: "16px",
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "12px",
+                        color: darkMode
+                          ? "rgba(255,255,255,0.8)"
+                          : "rgba(0,0,0,0.7)",
+                      }}
+                    >
+                      {/* Genre */}
+                      {novel.genre && (
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              opacity: 0.7,
+                              fontSize: "0.9rem",
+                              flexShrink: 0,
+                              width: "70px",
+                            }}
+                          >
+                            Genre:
+                          </span>
+                          <span
+                            style={{ fontSize: "0.95rem", fontWeight: "500" }}
+                          >
+                            {novel.genre}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Main Character Name */}
+                      {novel.novelDetails?.mcName && (
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              opacity: 0.7,
+                              fontSize: "0.9rem",
+                              flexShrink: 0,
+                              width: "70px",
+                            }}
+                          >
+                            MC:
+                          </span>
+                          <span
+                            style={{ fontSize: "0.95rem", fontWeight: "500" }}
+                          >
+                            {novel.novelDetails.mcName}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Updated Chapters display with read/total format or N/A */}
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            opacity: 0.7,
+                            fontSize: "0.9rem",
+                            flexShrink: 0,
+                            width: "70px",
+                          }}
+                        >
+                          Chapters:
+                        </span>
+                        <span
+                          style={{
+                            fontSize: "0.95rem",
+                            fontWeight: "600",
+                            backgroundColor: darkMode
+                              ? "rgba(97, 218, 251, 0.1)"
+                              : "rgba(0, 102, 204, 0.05)",
+                            padding: "2px 8px",
+                            borderRadius: "4px",
+                            color: darkMode ? "#61dafb" : "#0066cc",
+                          }}
+                        >
+                          {!novel.novelDetails?.totalChapters ||
+                          novel.novelDetails.totalChapters === 0
+                            ? "N/A"
+                            : `${novel.novelOpinion?.chaptersRead || 0}/${
+                                novel.novelDetails.totalChapters
+                              }`}
+                        </span>
+                      </div>
+
+                      {/* Link - clickable separately */}
+                      {novel.link && (
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            marginTop: "auto",
+                            paddingTop: "8px",
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <a
+                            href={novel.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              color: darkMode ? "#61dafb" : "#0066cc",
+                              textDecoration: "none",
+                              fontSize: "0.9rem",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              padding: "4px 0",
+                            }}
+                          >
+                            Visit Source
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                              <polyline points="15,3 21,3 21,9"></polyline>
+                              <line x1="10" y1="14" x2="21" y2="3"></line>
+                            </svg>
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Pagination controls - adjusted for filteredNovels */}
+          {filteredNovels.length > novelsPerPage && (
             <div
               style={{
                 display: "flex",

@@ -568,7 +568,9 @@ function Search({ darkMode }) {
                                   : "#0066cc"
                                 : "inherit",
                             padding:
-                              genre === novel.genre && genre !== "" ? "0px 8px" : "0",
+                              genre === novel.genre && genre !== ""
+                                ? "0px 8px"
+                                : "0",
                             backgroundColor:
                               genre === novel.genre && genre !== ""
                                 ? darkMode
