@@ -213,9 +213,35 @@ function Library({ darkMode }) {
 
   let content;
   try {
-    if (loading) content = <div>Loading novels...</div>;
-    else if (error) content = <div>{error}</div>;
-    else if (novels.length === 0) {
+    if (loading) {
+      content = (
+        <div
+          style={{
+            textAlign: "center",
+            color: darkMode ? "#f7f7fb" : "#333",
+            fontSize: "1.2rem",
+            marginTop: "40px",
+            padding: "20px",
+          }}
+        >
+          Loading novels...
+        </div>
+      );
+    } else if (error) {
+      content = (
+        <div
+          style={{
+            textAlign: "center",
+            color: darkMode ? "#ff6b6b" : "#e74c3c",
+            fontSize: "1.2rem",
+            marginTop: "40px",
+            padding: "20px",
+          }}
+        >
+          {error}
+        </div>
+      );
+    } else if (!novels || novels.length === 0) {
       content = (
         <div
           style={{
@@ -228,6 +254,8 @@ function Library({ darkMode }) {
             background: darkMode ? "#444" : "#f9f9f9",
             borderRadius: "8px",
             boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            maxWidth: "600px",
+            margin: "40px auto",
           }}
         >
           Your library is currently empty. Start adding novels to explore your

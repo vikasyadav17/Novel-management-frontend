@@ -170,6 +170,37 @@ function NovelDetails() {
             marginBottom: "2rem",
           }}
         >
+          {/* Genre field */}
+          {(novel.genre || isEditing) && (
+            <div
+              style={{
+                padding: "1.5rem",
+                borderRadius: "15px",
+                background: darkMode
+                  ? "rgba(255, 255, 255, 0.03)"
+                  : "rgba(255, 255, 255, 0.6)",
+                border: darkMode
+                  ? "1px solid rgba(255, 255, 255, 0.1)"
+                  : "1px solid rgba(255, 255, 255, 0.8)",
+              }}
+            >
+              <strong style={styles.label}>Genre:</strong>
+              <div style={{ marginTop: "0.5rem" }}>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editedValues.genre || ""}
+                    onChange={(e) => handleFieldChange("genre", e.target.value)}
+                    placeholder="Genre"
+                    style={styles.input}
+                  />
+                ) : (
+                  <span style={styles.text}>{novel.genre}</span>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Show all fields from novel.novelDetails */}
           {novel.novelDetails &&
             Object.entries(novel.novelDetails).map(([key, value]) => {
@@ -340,7 +371,9 @@ function NovelDetails() {
         </div>
 
         {/* Tags section */}
-        {((novel.tags && novel.tags.trim && novel.tags.trim() !== "") ||
+        {((novel.novelDetails?.tags &&
+          novel.novelDetails.tags.trim &&
+          novel.novelDetails.tags.trim() !== "") ||
           isEditing) && (
           <div style={{ marginBottom: "1.5rem" }}>
             <strong
@@ -354,8 +387,10 @@ function NovelDetails() {
             </strong>
             {isEditing ? (
               <textarea
-                value={editedValues.tags || ""}
-                onChange={(e) => handleFieldChange("tags", e.target.value)}
+                value={editedValues.novelDetails_tags || ""}
+                onChange={(e) =>
+                  handleFieldChange("novelDetails_tags", e.target.value)
+                }
                 placeholder="Enter tags separated by commas"
                 style={{
                   ...styles.input,
@@ -364,12 +399,12 @@ function NovelDetails() {
                 }}
               />
             ) : (
-              novel.tags &&
-              novel.tags.trim() !== "" && (
+              novel.novelDetails?.tags &&
+              novel.novelDetails.tags.trim() !== "" && (
                 <div
                   style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}
                 >
-                  {novel.tags.split(",").map((tag, index) => (
+                  {novel.novelDetails.tags.split(",").map((tag, index) => (
                     <span
                       key={index}
                       style={{
@@ -489,7 +524,123 @@ function NovelDetails() {
             >
               Review Changes
             </h2>
-            {/* Modal content */}
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "1rem",
+                marginBottom: "2rem",
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  padding: "0.5rem",
+                  backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
+                  borderRadius: "4px",
+                }}
+              >
+                Original Value
+              </div>
+              <div
+                style={{
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  padding: "0.5rem",
+                  backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
+                  borderRadius: "4px",
+                }}
+              >
+                New Value
+              </div>
+
+              {/* Display changed fields */}
+              {Object.keys(editedValues).map((key) => {
+                let originalValue = "";
+                let newValue = editedValues[key] || "";
+
+                // Get original value based on field type
+                if (key === "description") {
+                  originalValue = novel.novelDetails?.description || "";
+                } else if (key.startsWith("novelDetails_")) {
+                  const originalKey = key.replace("novelDetails_", "");
+                  originalValue = novel?.novelDetails?.[originalKey] || "";
+                } else if (key.startsWith("novelOpinion_")) {
+                  const originalKey = key.replace("novelOpinion_", "");
+                  originalValue = novel?.novelOpinion?.[originalKey] || "";
+                } else {
+                  originalValue = novel?.[key] || "";
+                }
+
+                // Only show fields that have changed
+                if (originalValue === newValue) return null;
+
+                // Format the key name for display
+                let formattedKey = key;
+                if (key.startsWith("novelDetails_")) {
+                  formattedKey = key
+                    .replace("novelDetails_", "")
+                    .replace(/([A-Z])/g, " $1")
+                    .replace(/^\w/, (c) => c.toUpperCase());
+                } else if (key.startsWith("novelOpinion_")) {
+                  formattedKey = key
+                    .replace("novelOpinion_", "")
+                    .replace(/([A-Z])/g, " $1")
+                    .replace(/^\w/, (c) => c.toUpperCase());
+                } else {
+                  formattedKey = key
+                    .replace(/([A-Z])/g, " $1")
+                    .replace(/^\w/, (c) => c.toUpperCase());
+                }
+
+                return (
+                  <React.Fragment key={key}>
+                    <div
+                      style={{
+                        gridColumn: "1 / span 2",
+                        fontWeight: "bold",
+                        marginTop: "1rem",
+                        color: darkMode ? "#61dafb" : "#0066cc",
+                      }}
+                    >
+                      {formattedKey}:
+                    </div>
+                    <div
+                      style={{
+                        padding: "0.5rem",
+                        backgroundColor: darkMode
+                          ? "rgba(255,255,255,0.03)"
+                          : "rgba(0,0,0,0.02)",
+                        borderRadius: "4px",
+                        maxHeight: "100px",
+                        overflowY: "auto",
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
+                      {originalValue || <em style={{ opacity: 0.5 }}>Empty</em>}
+                    </div>
+                    <div
+                      style={{
+                        padding: "0.5rem",
+                        backgroundColor: darkMode
+                          ? "rgba(97, 218, 251, 0.1)"
+                          : "rgba(0, 102, 204, 0.05)",
+                        borderRadius: "4px",
+                        fontWeight: "500",
+                        maxHeight: "100px",
+                        overflowY: "auto",
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
+                      {newValue || <em style={{ opacity: 0.5 }}>Empty</em>}
+                    </div>
+                  </React.Fragment>
+                );
+              })}
+            </div>
+
             <div
               style={{
                 display: "flex",
@@ -498,20 +649,31 @@ function NovelDetails() {
               }}
             >
               <button
+                type="button"
                 onClick={() => setShowComparisonModal(false)}
                 style={{
                   padding: "0.5rem 1rem",
                   backgroundColor: darkMode ? "#444" : "#ccc",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
                 }}
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={saveChanges}
                 disabled={isSaving}
                 style={{
                   padding: "0.5rem 1rem",
                   backgroundColor: darkMode ? "#61dafb" : "#0066cc",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: isSaving ? "not-allowed" : "pointer",
+                  opacity: isSaving ? 0.7 : 1,
                 }}
               >
                 {isSaving ? "Saving..." : "Confirm Changes"}
