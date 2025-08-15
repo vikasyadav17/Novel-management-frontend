@@ -215,7 +215,7 @@ function Library({ darkMode }) {
     currentPage * novelsPerPage
   );
 
-  // Update this function to export to Excel format (XLSX) instead of CSV
+  // Update this function to include novel cover image URL
   const exportToExcel = () => {
     // Create headers for Excel
     const headers = [
@@ -223,6 +223,7 @@ function Library({ darkMode }) {
       "Original Name",
       "Genre",
       "Link",
+      "Cover Image URL", // Added this header for novel cover
       "MC Name",
       "Special Characteristic",
       "Status",
@@ -240,6 +241,7 @@ function Library({ darkMode }) {
       novel.originalName || "",
       novel.genre || "",
       novel.link || "",
+      novel.novelDetails?.novelCover || "", // Added this field for novel cover URL
       novel.novelDetails?.mcName || "",
       novel.novelDetails?.specialCharacteristicOfMc || "",
       novel.novelDetails?.status || "",
@@ -250,7 +252,7 @@ function Library({ darkMode }) {
         ? new Date(novel.novelDetails.lastUpdatedOn).toLocaleDateString()
         : "",
       novel.novelDetails?.tags || "",
-      novel.novelDetails?.description || "", // No need for quote handling in Excel
+      novel.novelDetails?.description || "",
     ]);
 
     // Create worksheet from the data
@@ -262,6 +264,7 @@ function Library({ darkMode }) {
       { wch: 20 }, // Original Name
       { wch: 15 }, // Genre
       { wch: 25 }, // Link
+      { wch: 40 }, // Cover Image URL (wider column for URLs)
       { wch: 15 }, // MC Name
       { wch: 20 }, // Special Characteristic
       { wch: 12 }, // Status
