@@ -4,6 +4,8 @@ import logger from "../utils/logger";
 import { useNavigate } from "react-router-dom";
 import "../styles/Library.css";
 import defaultCoverImage from "../assets/images/Sword_god.jpg";
+import { saveAs } from "file-saver";
+import * as XLSX from "xlsx"; // Add this import for Excel export
 
 function Library({ darkMode }) {
   const navigate = useNavigate();
@@ -213,6 +215,84 @@ function Library({ darkMode }) {
     currentPage * novelsPerPage
   );
 
+  // Update this function to export to Excel format (XLSX) instead of CSV
+  const exportToExcel = () => {
+    // Create headers for Excel
+    const headers = [
+      "Name",
+      "Original Name",
+      "Genre",
+      "Link",
+      "MC Name",
+      "Special Characteristic",
+      "Status",
+      "Total Chapters",
+      "Chapters Read",
+      "Worth to Continue",
+      "Last Updated",
+      "Tags",
+      "Description",
+    ];
+
+    // Map novels to rows of data
+    const rows = novels.map((novel) => [
+      novel.name || "",
+      novel.originalName || "",
+      novel.genre || "",
+      novel.link || "",
+      novel.novelDetails?.mcName || "",
+      novel.novelDetails?.specialCharacteristicOfMc || "",
+      novel.novelDetails?.status || "",
+      novel.novelDetails?.totalChapters || "",
+      novel.novelOpinion?.chaptersRead || "",
+      novel.novelOpinion?.worthToContinue ? "Yes" : "No",
+      novel.novelDetails?.lastUpdatedOn
+        ? new Date(novel.novelDetails.lastUpdatedOn).toLocaleDateString()
+        : "",
+      novel.novelDetails?.tags || "",
+      novel.novelDetails?.description || "", // No need for quote handling in Excel
+    ]);
+
+    // Create worksheet from the data
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
+    // Format columns for better readability
+    const wscols = [
+      { wch: 20 }, // Name
+      { wch: 20 }, // Original Name
+      { wch: 15 }, // Genre
+      { wch: 25 }, // Link
+      { wch: 15 }, // MC Name
+      { wch: 20 }, // Special Characteristic
+      { wch: 12 }, // Status
+      { wch: 12 }, // Total Chapters
+      { wch: 12 }, // Chapters Read
+      { wch: 12 }, // Worth to Continue
+      { wch: 12 }, // Last Updated
+      { wch: 20 }, // Tags
+      { wch: 50 }, // Description
+    ];
+    ws["!cols"] = wscols;
+
+    // Create workbook and add the worksheet
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Novels");
+
+    // Generate Excel file
+    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const data = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    // Save the file
+    saveAs(
+      data,
+      `novel-library-export-${new Date().toISOString().slice(0, 10)}.xlsx`
+    );
+
+    logger.info("Exported novels to Excel format (.xlsx)");
+  };
+
   // Replace the content rendering section (where the table is)
   let content;
   try {
@@ -333,7 +413,10 @@ function Library({ darkMode }) {
                 display: "flex",
                 alignItems: "center",
                 gap: "8px",
+                cursor: "pointer", // Add cursor pointer to indicate it's clickable
               }}
+              onClick={exportToExcel} // Add click handler
+              title="Click to export library to Excel" // Add tooltip
             >
               <svg
                 width="20"
@@ -354,6 +437,21 @@ function Library({ darkMode }) {
                   {novels.length} Novels
                 </span>
               </span>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={darkMode ? "#61dafb" : "#0066cc"}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ marginLeft: "4px" }}
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
             </div>
           </div>
 

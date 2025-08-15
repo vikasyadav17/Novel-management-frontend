@@ -229,7 +229,7 @@ function NovelDetails() {
         Back
       </button>
 
-      {/* Edit/Cancel/Review Buttons - Updated to use full width since bookmark is removed */}
+      {/* Edit/Cancel/Review Buttons - Fixed to show proper buttons based on state */}
       <div
         style={{
           position: "absolute",
@@ -241,57 +241,37 @@ function NovelDetails() {
         }}
       >
         {!isEditing ? (
-          // Split button when not in edit mode
-          <>
-            <button
-              onClick={cancelEditing}
-              style={{
-                flex: "0 0 100px",
-                backgroundColor: darkMode
-                  ? "rgba(68, 68, 68, 0.9)"
-                  : "rgba(221, 221, 221, 0.9)",
-                color: darkMode ? "#f7f7fb" : "#555",
-                border: "none",
-                borderRadius: "8px 0 0 8px", // More rounded on left side
-                fontWeight: "500",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                backdropFilter: "blur(5px)",
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={startEditing}
-              style={{
-                flex: 1,
-                background: "linear-gradient(90deg, #007bff, #0062cc)",
-                color: "white",
-                border: "none",
-                borderRadius: "0 8px 8px 0", // More rounded on right side
-                fontWeight: "600",
-                cursor: "pointer",
-                boxShadow: "0 4px 6px rgba(0, 123, 255, 0.2)",
-                transition: "all 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background =
-                  "linear-gradient(90deg, #0062cc, #004799)";
-                e.currentTarget.style.boxShadow =
-                  "0 6px 8px rgba(0, 123, 255, 0.3)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background =
-                  "linear-gradient(90deg, #007bff, #0062cc)";
-                e.currentTarget.style.boxShadow =
-                  "0 4px 6px rgba(0, 123, 255, 0.2)";
-              }}
-            >
-              Edit
-            </button>
-          </>
+          // When not editing, show only the Edit button
+          <button
+            onClick={startEditing}
+            style={{
+              flex: 1,
+              background: "linear-gradient(90deg, #007bff, #0062cc)",
+              color: "white",
+              border: "none",
+              borderRadius: "8px", // Fully rounded since it's a single button
+              fontWeight: "600",
+              cursor: "pointer",
+              boxShadow: "0 4px 6px rgba(0, 123, 255, 0.2)",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background =
+                "linear-gradient(90deg, #0062cc, #004799)";
+              e.currentTarget.style.boxShadow =
+                "0 6px 8px rgba(0, 123, 255, 0.3)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background =
+                "linear-gradient(90deg, #007bff, #0062cc)";
+              e.currentTarget.style.boxShadow =
+                "0 4px 6px rgba(0, 123, 255, 0.2)";
+            }}
+          >
+            Edit
+          </button>
         ) : (
-          // Same buttons when in edit mode, but with Review Changes instead of Edit
+          // When in edit mode, show Cancel and Review Changes buttons
           <>
             <button
               onClick={cancelEditing}
@@ -435,24 +415,34 @@ function NovelDetails() {
         )}
       </div>
 
-      {/* Novel Cover Image and Description - Enhanced with better styling */}
+      {/* Novel Cover Image and Description - Fixed vertical alignment */}
       <div
         style={{
           marginBottom: "2rem",
           padding: "0 2rem",
-          display: "flex",
-          gap: "2rem",
-          alignItems: "flex-start",
-          flexWrap: "wrap", // Make responsive
+          position: "relative", // Use relative positioning for better control
         }}
       >
-        {/* Left side - Image with enhanced styling */}
-        <div style={{ flexShrink: 0, margin: "0 auto" }}>
+        {/* Left side - Image with vertical centering */}
+        <div
+          style={{
+            position: "absolute",
+            left: "2rem",
+            top: "50%",
+            transform: "translateY(-50%)",
+            width: "250px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <img
             src={novel.novelDetails?.novelCover || defaultCoverImage}
             alt={novel.name}
             style={{
+              width: "100%",
               maxWidth: "250px",
+              height: "auto",
               maxHeight: "350px",
               borderRadius: "15px",
               boxShadow: darkMode
@@ -473,59 +463,66 @@ function NovelDetails() {
           />
         </div>
 
-        {/* Description - Right */}
-        {(novel.novelDetails?.description || isEditing) && (
-          <div style={{ flex: 1 }}>
-            {isEditing ? (
-              <>
-                <strong
+        {/* Description - With left margin to accommodate the image */}
+        <div
+          style={{
+            marginLeft: "280px", // Space for the image (250px) plus some gap
+            minHeight: "350px", // Ensure enough height for the image to be centered
+          }}
+        >
+          {(novel.novelDetails?.description || isEditing) && (
+            <div>
+              {isEditing ? (
+                <>
+                  <strong
+                    style={{
+                      ...styles.label,
+                      display: "block",
+                      marginBottom: "0.75rem",
+                    }}
+                  >
+                    Description:
+                  </strong>
+                  <textarea
+                    value={editedValues.description || ""}
+                    onChange={(e) =>
+                      handleFieldChange("description", e.target.value)
+                    }
+                    placeholder="Enter novel description"
+                    style={{
+                      ...styles.input,
+                      minHeight: "300px",
+                      resize: "vertical",
+                      lineHeight: "1.6",
+                      width: "100%",
+                    }}
+                  />
+                </>
+              ) : (
+                <div
                   style={{
-                    ...styles.label,
-                    display: "block",
-                    marginBottom: "0.75rem",
+                    ...styles.text,
+                    padding: "1.25rem",
+                    backgroundColor: darkMode
+                      ? "rgba(255,255,255,0.03)"
+                      : "rgba(0,0,0,0.01)",
+                    borderRadius: "10px",
+                    borderLeft: darkMode
+                      ? "4px solid #61dafb"
+                      : "4px solid #0066cc",
+                    lineHeight: "1.9",
+                    whiteSpace: "pre-wrap",
+                    textAlign: "left",
+                    fontSize: "1.1rem",
+                    minHeight: "300px",
                   }}
                 >
-                  Description:
-                </strong>
-                <textarea
-                  value={editedValues.description || ""}
-                  onChange={(e) =>
-                    handleFieldChange("description", e.target.value)
-                  }
-                  placeholder="Enter novel description"
-                  style={{
-                    ...styles.input,
-                    minHeight: "300px",
-                    resize: "vertical",
-                    lineHeight: "1.6",
-                    width: "100%",
-                  }}
-                />
-              </>
-            ) : (
-              <div
-                style={{
-                  ...styles.text,
-                  padding: "1.25rem",
-                  backgroundColor: darkMode
-                    ? "rgba(255,255,255,0.03)"
-                    : "rgba(0,0,0,0.01)",
-                  borderRadius: "10px",
-                  borderLeft: darkMode
-                    ? "4px solid #61dafb"
-                    : "4px solid #0066cc",
-                  lineHeight: "1.9",
-                  whiteSpace: "pre-wrap",
-                  textAlign: "left",
-                  fontSize: "1.1rem",
-                  minHeight: "300px",
-                }}
-              >
-                {novel.novelDetails.description}
-              </div>
-            )}
-          </div>
-        )}
+                  {novel.novelDetails.description}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Tags section */}
