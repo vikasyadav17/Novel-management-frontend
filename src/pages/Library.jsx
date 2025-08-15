@@ -3,9 +3,9 @@ import { novelApi } from "../services/novelApi";
 import logger from "../utils/logger";
 import { useNavigate } from "react-router-dom";
 import "../styles/Library.css";
-import defaultCoverImage from "../assets/images/Sword_god.jpg";
 import { saveAs } from "file-saver";
-import * as XLSX from "xlsx"; // Add this import for Excel export
+import * as XLSX from "xlsx";
+import { getCoverImage, handleImageError } from "../utils/coverUtils";
 
 function Library({ darkMode }) {
   const navigate = useNavigate();
@@ -554,7 +554,7 @@ function Library({ darkMode }) {
                     }}
                   >
                     <img
-                      src={novel.novelDetails?.novelCover || defaultCoverImage}
+                      src={getCoverImage(novel)}
                       alt={novel.name}
                       style={{
                         width: "100%",
@@ -562,9 +562,7 @@ function Library({ darkMode }) {
                         objectFit: "contain", // Changed from "cover" to "contain" to show full image
                         padding: "5px", // Added padding to prevent image from touching edges
                       }}
-                      onError={(e) => {
-                        e.target.src = defaultCoverImage;
-                      }}
+                      onError={handleImageError} // Use the shared error handler
                     />
                     <div
                       style={{

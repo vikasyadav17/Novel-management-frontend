@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom"; // Add useNavigate import
+import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useContext } from "react";
 import React from "react";
 import { novelApi } from "../services/novelApi";
@@ -10,7 +10,7 @@ import FieldRenderer from "../components/FieldRenderer";
 import { getFieldConfig } from "../utils/fieldConfig";
 import moment from "moment";
 import "./NovelDetails.css";
-import defaultCoverImage from "../assets/images/Sword_god.jpg";
+import { getCoverImage, handleImageError } from "../utils/coverUtils";
 
 function NovelDetails() {
   const { id } = useParams();
@@ -437,7 +437,7 @@ function NovelDetails() {
           }}
         >
           <img
-            src={novel.novelDetails?.novelCover || defaultCoverImage}
+            src={getCoverImage(novel)}
             alt={novel.name}
             style={{
               width: "100%",
@@ -457,9 +457,7 @@ function NovelDetails() {
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "scale(1)";
             }}
-            onError={(e) => {
-              e.target.src = defaultCoverImage;
-            }}
+            onError={handleImageError} // Use the shared error handler
           />
         </div>
 
