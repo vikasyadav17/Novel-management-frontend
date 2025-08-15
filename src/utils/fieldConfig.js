@@ -1,4 +1,7 @@
 export const getFieldConfig = (novel, isEditing) => {
+  // Make sure to always include certain fields even if they are empty
+  const alwaysIncludeFields = ["mcName", "specialCharacteristicOfMc"];
+
   const novelDetailsFields = [];
   const novelOpinionFields = [];
 
@@ -131,6 +134,15 @@ export const getFieldConfig = (novel, isEditing) => {
     });
   }
 
+  // Filter to always include certain fields even if they are empty
+  const filteredNovelDetailsFields = novelDetailsFields.filter((field) => {
+    return (
+      alwaysIncludeFields.includes(field.key.replace("novelDetails_", "")) ||
+      novel?.novelDetails?.[field.key.replace("novelDetails_", "")] ||
+      isEditing
+    );
+  });
+
   // Process novelOpinion fields
   if (novel.novelOpinion) {
     Object.entries(novel.novelOpinion).forEach(([key, value]) => {
@@ -160,5 +172,5 @@ export const getFieldConfig = (novel, isEditing) => {
     });
   }
 
-  return { novelDetailsFields, novelOpinionFields };
+  return { novelDetailsFields: filteredNovelDetailsFields, novelOpinionFields };
 };

@@ -93,10 +93,27 @@ function NovelDetails() {
   if (error) return <div style={styles.container}>{error}</div>;
   if (!novel) return <div style={styles.container}>Novel not found</div>;
 
+  // Get field configs from utility
   const { novelDetailsFields, novelOpinionFields } = getFieldConfig(
     novel,
     isEditing
   );
+
+  // Ensure mcName is always displayed
+  const ensureMcNameField = novelDetailsFields.some(
+    (field) => field.key === "novelDetails_mcName"
+  );
+
+  // If mcName is not in the fields, add it manually
+  if (!ensureMcNameField) {
+    novelDetailsFields.push({
+      key: "novelDetails_mcName",
+      type: "text",
+      label: "Main Character Name",
+      value: novel?.novelDetails?.mcName || "",
+      placeholder: "Main Character Name",
+    });
+  }
 
   return (
     <div
@@ -355,9 +372,12 @@ function NovelDetails() {
                       padding: "0.25rem 0.75rem",
                       borderRadius: "20px",
                       fontSize: "0.95rem",
+                      textTransform: "uppercase", // Added this line to ensure tags are uppercase
+                      fontWeight: "500", // Added slightly bolder font for better uppercase readability
+                      letterSpacing: "0.5px", // Added slight letter spacing for better uppercase readability
                     }}
                   >
-                    {tag.trim()}
+                    {tag.trim().toUpperCase()} {/* Changed to uppercase */}
                   </span>
                 ))}
               </div>
