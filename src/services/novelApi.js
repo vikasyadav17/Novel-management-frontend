@@ -26,11 +26,8 @@ export const novelApi = {
    *   ...
    * ]
    */
-  getAllNovels: async (name, genre) => {
-    const params = {};
-    if (name) params.name = name;
-    if (genre) params.genre = genre;
-    return axios.get(`${BASE_URL}/all`, { params });
+  getAllNovels: async () => {
+    return axios.get(`${BASE_URL}/all`);
   },
 
   addNovel: async (novelData) => {
@@ -59,6 +56,5 @@ export const novelApi = {
     return axios.get(`${BASE_URL}/${id}`);
   },
 
-  getNovelByName: (name) =>
-    axios.get(`http://localhost:8080/novels`, { params: { name } }), // Add method to fetch novel by name
+  getNovelByName: (name) => axios.get(`${BASE_URL}`, { params: { name } }), // Add method to fetch novel by name
 };
