@@ -159,6 +159,96 @@ function NovelDetails() {
         styles={styles}
       />
 
+      {/* Novel Cover Image */}
+      <div
+        style={{
+          marginBottom: "2rem",
+          padding: "0 2rem",
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <img
+          src={
+            novel.novelDetails?.cover ||
+            "https://i.imgur.com/sword-god-image.jpg"
+          } // Replace with actual sword god image URL
+          alt={novel.name}
+          style={{
+            maxWidth: "300px",
+            maxHeight: "400px",
+            borderRadius: "15px",
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+            objectFit: "cover",
+          }}
+          onError={(e) => {
+            // If image fails to load, use the sword god fallback
+            e.target.src = "https://i.imgur.com/sword-god-image.jpg"; // Replace with actual sword god image URL
+          }}
+        />
+      </div>
+
+      {/* Tags section - moved here right after header */}
+      {((novel.novelDetails?.tags &&
+        novel.novelDetails.tags.trim &&
+        novel.novelDetails.tags.trim() !== "") ||
+        isEditing) && (
+        <div style={{ marginBottom: "2rem", padding: "0 2rem" }}>
+          {isEditing ? (
+            <>
+              <strong
+                style={{
+                  ...styles.label,
+                  display: "block",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Tags:
+              </strong>
+              <textarea
+                value={editedValues.novelDetails_tags || ""}
+                onChange={(e) =>
+                  handleFieldChange("novelDetails_tags", e.target.value)
+                }
+                placeholder="Enter tags separated by commas"
+                style={{
+                  ...styles.input,
+                  minHeight: "80px",
+                  resize: "vertical",
+                }}
+              />
+            </>
+          ) : (
+            novel.novelDetails?.tags &&
+            novel.novelDetails.tags.trim() !== "" && (
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "0.5rem",
+                  justifyContent: "center",
+                }}
+              >
+                {novel.novelDetails.tags.split(",").map((tag, index) => (
+                  <span
+                    key={index}
+                    style={{
+                      ...styles.text,
+                      backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
+                      padding: "0.25rem 0.75rem",
+                      borderRadius: "20px",
+                      fontSize: "0.95rem",
+                    }}
+                  >
+                    {tag.trim()}
+                  </span>
+                ))}
+              </div>
+            )
+          )}
+        </div>
+      )}
+
       {/* Details Section */}
       <div style={{ ...styles.section, padding: "2rem" }}>
         {/* Unified grid for all details */}
@@ -221,10 +311,15 @@ function NovelDetails() {
               }
 
               // Format the key name for display
-              const formattedKey = key
+              let formattedKey = key
                 .replace(/([A-Z])/g, " $1")
                 .replace(/_/g, " ")
                 .replace(/^\w/, (c) => c.toUpperCase());
+
+              // Special formatting for mcName
+              if (key === "mcName") {
+                formattedKey = "Mc Name";
+              }
 
               // Special handling for status field with editing capability
               if (key === "status") {
@@ -322,6 +417,86 @@ function NovelDetails() {
                         />
                       ) : (
                         <span style={styles.text}>{value}</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+
+              // Special handling for mcName field
+              if (key === "mcName") {
+                return (
+                  <div
+                    key={key}
+                    style={{
+                      padding: "1.5rem",
+                      borderRadius: "15px",
+                      background: darkMode
+                        ? "rgba(255, 255, 255, 0.03)"
+                        : "rgba(255, 255, 255, 0.6)",
+                      border: darkMode
+                        ? "1px solid rgba(255, 255, 255, 0.1)"
+                        : "1px solid rgba(255, 255, 255, 0.8)",
+                    }}
+                  >
+                    <strong style={styles.label}>Mc Name:</strong>
+                    <div style={{ marginTop: "0.5rem" }}>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={editedValues.novelDetails_mcName || ""}
+                          onChange={(e) =>
+                            handleFieldChange(
+                              "novelDetails_mcName",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Main Character Name"
+                          style={styles.input}
+                        />
+                      ) : (
+                        <span style={styles.text}>{value}</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+
+              // Special handling for cover field
+              if (key === "cover") {
+                return (
+                  <div
+                    key={key}
+                    style={{
+                      padding: "1.5rem",
+                      borderRadius: "15px",
+                      background: darkMode
+                        ? "rgba(255, 255, 255, 0.03)"
+                        : "rgba(255, 255, 255, 0.6)",
+                      border: darkMode
+                        ? "1px solid rgba(255, 255, 255, 0.1)"
+                        : "1px solid rgba(255, 255, 255, 0.8)",
+                    }}
+                  >
+                    <strong style={styles.label}>Cover URL:</strong>
+                    <div style={{ marginTop: "0.5rem" }}>
+                      {isEditing ? (
+                        <input
+                          type="url"
+                          value={editedValues.novelDetails_cover || ""}
+                          onChange={(e) =>
+                            handleFieldChange(
+                              "novelDetails_cover",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Enter cover image URL"
+                          style={styles.input}
+                        />
+                      ) : (
+                        <span style={styles.text}>
+                          {value ? "Image URL provided" : "Using default image"}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -437,134 +612,7 @@ function NovelDetails() {
                 </div>
               );
             })}
-
-          {/* Main Character (mcName) - now handled as novelDetails field */}
-          {(novel.novelDetails?.mcName || isEditing) && (
-            <div
-              style={{
-                padding: "1.5rem",
-                borderRadius: "15px",
-                background: darkMode
-                  ? "rgba(255, 255, 255, 0.03)"
-                  : "rgba(255, 255, 255, 0.6)",
-                border: darkMode
-                  ? "1px solid rgba(255, 255, 255, 0.1)"
-                  : "1px solid rgba(255, 255, 255, 0.8)",
-              }}
-            >
-              <strong style={styles.label}>Main Character:</strong>
-              <div style={{ marginTop: "0.5rem" }}>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={editedValues.novelDetails_mcName || ""}
-                    onChange={(e) =>
-                      handleFieldChange("novelDetails_mcName", e.target.value)
-                    }
-                    placeholder="Main Character Name"
-                    style={styles.input}
-                  />
-                ) : (
-                  <span style={styles.text}>{novel.novelDetails?.mcName}</span>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* MC Trait - also move to novelDetails if needed */}
-          {(novel.novelDetails?.specialCharacteristicOfMc || isEditing) && (
-            <div
-              style={{
-                padding: "1.5rem",
-                borderRadius: "15px",
-                background: darkMode
-                  ? "rgba(255, 255, 255, 0.03)"
-                  : "rgba(255, 255, 255, 0.6)",
-                border: darkMode
-                  ? "1px solid rgba(255, 255, 255, 0.1)"
-                  : "1px solid rgba(255, 255, 255, 0.8)",
-              }}
-            >
-              <strong style={styles.label}>MC Trait:</strong>
-              <div style={{ marginTop: "0.5rem" }}>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={
-                      editedValues.novelDetails_specialCharacteristicOfMc || ""
-                    }
-                    onChange={(e) =>
-                      handleFieldChange(
-                        "novelDetails_specialCharacteristicOfMc",
-                        e.target.value
-                      )
-                    }
-                    placeholder="MC Trait"
-                    style={styles.input}
-                  />
-                ) : (
-                  <span style={styles.text}>
-                    {novel.novelDetails?.specialCharacteristicOfMc}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
         </div>
-
-        {/* Tags section */}
-        {((novel.novelDetails?.tags &&
-          novel.novelDetails.tags.trim &&
-          novel.novelDetails.tags.trim() !== "") ||
-          isEditing) && (
-          <div style={{ marginBottom: "1.5rem" }}>
-            <strong
-              style={{
-                ...styles.label,
-                display: "block",
-                marginBottom: "0.5rem",
-              }}
-            >
-              Tags:
-            </strong>
-            {isEditing ? (
-              <textarea
-                value={editedValues.novelDetails_tags || ""}
-                onChange={(e) =>
-                  handleFieldChange("novelDetails_tags", e.target.value)
-                }
-                placeholder="Enter tags separated by commas"
-                style={{
-                  ...styles.input,
-                  minHeight: "80px",
-                  resize: "vertical",
-                }}
-              />
-            ) : (
-              novel.novelDetails?.tags &&
-              novel.novelDetails.tags.trim() !== "" && (
-                <div
-                  style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}
-                >
-                  {novel.novelDetails.tags.split(",").map((tag, index) => (
-                    <span
-                      key={index}
-                      style={{
-                        ...styles.text,
-                        backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
-                        padding: "0.25rem 0.75rem",
-                        borderRadius: "20px",
-                        fontSize: "0.95rem",
-                      }}
-                    >
-                      {tag.trim()}
-                    </span>
-                  ))}
-                </div>
-              )
-            )}
-          </div>
-        )}
 
         {/* Link to novel */}
         <div style={{ marginBottom: "1.5rem" }}>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import swordGodImage from "../assets/images/sword_god.jpg";
 
 const NovelHeader = ({
@@ -8,6 +8,8 @@ const NovelHeader = ({
   handleFieldChange,
   styles,
 }) => {
+  const [hoveredStar, setHoveredStar] = useState(-1);
+
   return (
     <div
       style={{
@@ -94,31 +96,70 @@ const NovelHeader = ({
         </h1>
       )}
 
-      {/* Rating Stars */}
-      {novel.novelOpinion?.rating >= 0 && (
-        <div style={{ marginBottom: "2rem", textAlign: "center" }}>
+      {/* Rating Stars - Hidden */}
+      {false && (
+        <div style={{ marginBottom: "1rem" }}>
           <div
             style={{
-              padding: "1rem 2rem",
-              borderRadius: "50px",
-              display: "inline-block",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
             }}
           >
-            {[...Array(5)].map((_, i) => (
-              <span
-                key={i}
-                style={{
-                  color:
-                    i < novel.novelOpinion.rating
-                      ? "#FFD700"
-                      : "rgba(255, 215, 0, 0.3)",
-                  fontSize: "2.2rem",
-                  marginRight: i < 4 ? "8px" : "0",
-                }}
+            {isEditing ? (
+              <div
+                style={{ display: "flex", gap: "0.3rem" }}
+                onMouseLeave={() => setHoveredStar(-1)}
               >
-                ★
-              </span>
-            ))}
+                {Array.from({ length: 5 }, (_, i) => {
+                  const currentRating =
+                    editedValues.novelOpinion_rating ||
+                    novel.novelOpinion?.rating ||
+                    0;
+                  const shouldFill =
+                    hoveredStar >= 0 ? i <= hoveredStar : i < currentRating;
+
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() =>
+                        handleFieldChange("novelOpinion_rating", i + 1)
+                      }
+                      onMouseEnter={() => setHoveredStar(i)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: "2rem",
+                        color: shouldFill ? "#FFD700" : "#DDD",
+                        padding: "0.3rem",
+                        transition: "color 0.2s ease",
+                      }}
+                    >
+                      ★
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ display: "flex", gap: "0.2rem" }}>
+                {Array.from({ length: 5 }, (_, i) => (
+                  <span
+                    key={i}
+                    style={{
+                      color:
+                        i < (novel.novelOpinion?.rating || 0)
+                          ? "#FFD700"
+                          : "#DDD",
+                      fontSize: "2rem",
+                    }}
+                  >
+                    ★
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

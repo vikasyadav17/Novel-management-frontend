@@ -18,7 +18,7 @@ export const useNovelEdit = (novel, setNovel, id) => {
       genre: novel.genre || "",
       description: novel.novelDetails?.description || "",
 
-      // Include all novelDetails fields (including mcName)
+      // Include all novelDetails fields
       ...(novel.novelDetails &&
         Object.keys(novel.novelDetails).reduce((acc, key) => {
           if (key !== "_id" && key !== "description") {
@@ -27,11 +27,12 @@ export const useNovelEdit = (novel, setNovel, id) => {
           return acc;
         }, {})),
 
-      // Include all novelOpinion fields
+      // Include all novelOpinion fields (including rating)
       ...(novel.novelOpinion &&
         Object.keys(novel.novelOpinion).reduce((acc, key) => {
           if (key !== "_id") {
-            acc[`novelOpinion_${key}`] = novel.novelOpinion[key] ?? "";
+            acc[`novelOpinion_${key}`] =
+              novel.novelOpinion[key] ?? (key === "rating" ? 0 : "");
           }
           return acc;
         }, {})),
