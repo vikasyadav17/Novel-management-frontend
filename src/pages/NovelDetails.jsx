@@ -6,6 +6,8 @@ import { ThemeContext } from "../context/ThemeContext";
 import { createStyles } from "../styles/novelDetailsStyles";
 import { useNovelEdit } from "../hooks/useNovelEdit";
 import NovelHeader from "../components/NovelHeader";
+import FieldRenderer from "../components/FieldRenderer";
+import { getFieldConfig } from "../utils/fieldConfig";
 import moment from "moment";
 import "./NovelDetails.css";
 
@@ -90,6 +92,11 @@ function NovelDetails() {
 
   if (error) return <div style={styles.container}>{error}</div>;
   if (!novel) return <div style={styles.container}>Novel not found</div>;
+
+  const { novelDetailsFields, novelOpinionFields } = getFieldConfig(
+    novel,
+    isEditing
+  );
 
   return (
     <div
@@ -372,435 +379,49 @@ function NovelDetails() {
         >
           {/* Genre field */}
           {(novel.genre || isEditing) && (
-            <div
-              style={{
-                padding: "1.5rem",
-                borderRadius: "15px",
-                background: darkMode
-                  ? "rgba(255, 255, 255, 0.03)"
-                  : "rgba(255, 255, 255, 0.6)",
-                border: darkMode
-                  ? "1px solid rgba(255, 255, 255, 0.1)"
-                  : "1px solid rgba(255, 255, 255, 0.8)",
+            <FieldRenderer
+              field={{
+                key: "genre",
+                type: "text",
+                label: "Genre",
+                placeholder: "Genre",
               }}
-            >
-              <strong style={styles.label}>Genre:</strong>
-              <div style={{ marginTop: "0.5rem" }}>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={editedValues.genre || ""}
-                    onChange={(e) => handleFieldChange("genre", e.target.value)}
-                    placeholder="Genre"
-                    style={styles.input}
-                  />
-                ) : (
-                  <span style={styles.text}>{novel.genre}</span>
-                )}
-              </div>
-            </div>
+              value={novel.genre}
+              isEditing={isEditing}
+              editedValues={editedValues}
+              handleFieldChange={handleFieldChange}
+              styles={styles}
+              darkMode={darkMode}
+            />
           )}
 
-          {/* Show all fields from novel.novelDetails */}
-          {novel.novelDetails &&
-            Object.entries(novel.novelDetails).map(([key, value]) => {
-              // Skip if value is empty, it's an ID field, or special fields
-              if (
-                value === null ||
-                value === undefined ||
-                (value === "" &&
-                  key !== "totalChapters" &&
-                  key !== "novelCover") ||
-                key === "_id" ||
-                key === "id" ||
-                key.toLowerCase().includes("id") ||
-                key === "addedOn" ||
-                key === "lastUpdatedOn" ||
-                key === "description" ||
-                key === "tags"
-              ) {
-                return null;
-              }
+          {/* Novel Details Fields */}
+          {novelDetailsFields.map((field) => (
+            <FieldRenderer
+              key={field.key}
+              field={field}
+              value={field.value}
+              isEditing={isEditing}
+              editedValues={editedValues}
+              handleFieldChange={handleFieldChange}
+              styles={styles}
+              darkMode={darkMode}
+            />
+          ))}
 
-              // Special handling for novelCover field - only show in edit mode
-              if (key === "novelCover" && !isEditing) {
-                return null;
-              }
-
-              // Format the key name for display
-              let formattedKey = key
-                .replace(/([A-Z])/g, " $1")
-                .replace(/_/g, " ")
-                .replace(/^\w/, (c) => c.toUpperCase());
-
-              // Special formatting for mcName
-              if (key === "mcName") {
-                formattedKey = "Mc Name";
-              }
-
-              // Special formatting for specialCharacteristicOfMc
-              if (key === "specialCharacteristicOfMc") {
-                formattedKey = "Special Characteristic Of Mc";
-              }
-
-              // Special handling for status field with editing capability
-              if (key === "status") {
-                return (
-                  <div
-                    key={key}
-                    style={{
-                      padding: "1.5rem",
-                      borderRadius: "15px",
-                      background: darkMode
-                        ? "rgba(255, 255, 255, 0.03)"
-                        : "rgba(255, 255, 255, 0.6)",
-                      border: darkMode
-                        ? "1px solid rgba(255, 255, 255, 0.1)"
-                        : "1px solid rgba(255, 255, 255, 0.8)",
-                    }}
-                  >
-                    <strong style={styles.label}>Status:</strong>
-                    <div style={{ marginTop: "0.5rem" }}>
-                      {isEditing ? (
-                        <select
-                          value={editedValues.novelDetails_status || ""}
-                          onChange={(e) =>
-                            handleFieldChange(
-                              "novelDetails_status",
-                              e.target.value
-                            )
-                          }
-                          style={{
-                            ...styles.input,
-                            background: darkMode
-                              ? "rgba(255, 255, 255, 0.05)"
-                              : "rgba(255, 255, 255, 0.9)",
-                            border: darkMode
-                              ? "1px solid rgba(255, 255, 255, 0.2)"
-                              : "1px solid rgba(0, 0, 0, 0.1)",
-                            borderRadius: "10px",
-                          }}
-                        >
-                          <option value="">Select Status</option>
-                          <option value="Reading">Reading</option>
-                          <option value="Completed">Completed</option>
-                          <option value="Dropped">Dropped</option>
-                          <option value="On Hold">On Hold</option>
-                          <option value="Plan to Read">Plan to Read</option>
-                        </select>
-                      ) : (
-                        <span style={styles.text}>{value}</span>
-                      )}
-                    </div>
-                  </div>
-                );
-              }
-
-              // Special handling for totalChapters field with numeric input
-              if (key === "totalChapters") {
-                return (
-                  <div
-                    key={key}
-                    style={{
-                      padding: "1.5rem",
-                      borderRadius: "15px",
-                      background: darkMode
-                        ? "rgba(255, 255, 255, 0.03)"
-                        : "rgba(255, 255, 255, 0.6)",
-                      border: darkMode
-                        ? "1px solid rgba(255, 255, 255, 0.1)"
-                        : "1px solid rgba(255, 255, 255, 0.8)",
-                    }}
-                  >
-                    <strong style={styles.label}>Total Chapters:</strong>
-                    <div style={{ marginTop: "0.5rem" }}>
-                      {isEditing ? (
-                        <input
-                          type="number"
-                          value={editedValues.novelDetails_totalChapters || ""}
-                          onChange={(e) =>
-                            handleFieldChange(
-                              "novelDetails_totalChapters",
-                              e.target.value
-                            )
-                          }
-                          placeholder="Enter total chapters"
-                          min="0"
-                          style={{
-                            ...styles.input,
-                            background: darkMode
-                              ? "rgba(255, 255, 255, 0.05)"
-                              : "rgba(255, 255, 255, 0.9)",
-                            border: darkMode
-                              ? "1px solid rgba(255, 255, 255, 0.2)"
-                              : "1px solid rgba(0, 0, 0, 0.1)",
-                            borderRadius: "10px",
-                          }}
-                        />
-                      ) : (
-                        <span style={styles.text}>{value}</span>
-                      )}
-                    </div>
-                  </div>
-                );
-              }
-
-              // Special handling for mcName field
-              if (key === "mcName") {
-                return (
-                  <div
-                    key={key}
-                    style={{
-                      padding: "1.5rem",
-                      borderRadius: "15px",
-                      background: darkMode
-                        ? "rgba(255, 255, 255, 0.03)"
-                        : "rgba(255, 255, 255, 0.6)",
-                      border: darkMode
-                        ? "1px solid rgba(255, 255, 255, 0.1)"
-                        : "1px solid rgba(255, 255, 255, 0.8)",
-                    }}
-                  >
-                    <strong style={styles.label}>Mc Name:</strong>
-                    <div style={{ marginTop: "0.5rem" }}>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editedValues.novelDetails_mcName || ""}
-                          onChange={(e) =>
-                            handleFieldChange(
-                              "novelDetails_mcName",
-                              e.target.value
-                            )
-                          }
-                          placeholder="Main Character Name"
-                          style={styles.input}
-                        />
-                      ) : (
-                        <span style={styles.text}>{value}</span>
-                      )}
-                    </div>
-                  </div>
-                );
-              }
-
-              // Special handling for novelCover field
-              if (key === "novelCover") {
-                return (
-                  <div
-                    key={key}
-                    style={{
-                      padding: "1.5rem",
-                      borderRadius: "15px",
-                      background: darkMode
-                        ? "rgba(255, 255, 255, 0.03)"
-                        : "rgba(255, 255, 255, 0.6)",
-                      border: darkMode
-                        ? "1px solid rgba(255, 255, 255, 0.1)"
-                        : "1px solid rgba(255, 255, 255, 0.8)",
-                    }}
-                  >
-                    <strong style={styles.label}>Novel Cover URL:</strong>
-                    <div style={{ marginTop: "0.5rem" }}>
-                      <input
-                        type="url"
-                        value={editedValues.novelDetails_novelCover || ""}
-                        onChange={(e) =>
-                          handleFieldChange(
-                            "novelDetails_novelCover",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Enter cover image URL"
-                        style={styles.input}
-                      />
-                    </div>
-                  </div>
-                );
-              }
-
-              // Special handling for specialCharacteristicOfMc field
-              if (key === "specialCharacteristicOfMc") {
-                return (
-                  <div
-                    key={key}
-                    style={{
-                      padding: "1.5rem",
-                      borderRadius: "15px",
-                      background: darkMode
-                        ? "rgba(255, 255, 255, 0.03)"
-                        : "rgba(255, 255, 255, 0.6)",
-                      border: darkMode
-                        ? "1px solid rgba(255, 255, 255, 0.1)"
-                        : "1px solid rgba(255, 255, 255, 0.8)",
-                    }}
-                  >
-                    <strong style={styles.label}>
-                      Special Characteristic Of Mc:
-                    </strong>
-                    <div style={{ marginTop: "0.5rem" }}>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={
-                            editedValues.novelDetails_specialCharacteristicOfMc ||
-                            ""
-                          }
-                          onChange={(e) =>
-                            handleFieldChange(
-                              "novelDetails_specialCharacteristicOfMc",
-                              e.target.value
-                            )
-                          }
-                          placeholder="Enter MC's special characteristic"
-                          style={styles.input}
-                        />
-                      ) : (
-                        <span style={styles.text}>{value}</span>
-                      )}
-                    </div>
-                  </div>
-                );
-              }
-
-              return (
-                <div
-                  key={key}
-                  style={{
-                    padding: "1.5rem",
-                    borderRadius: "15px",
-                    background: darkMode
-                      ? "rgba(255, 255, 255, 0.03)"
-                      : "rgba(255, 255, 255, 0.6)",
-                    border: darkMode
-                      ? "1px solid rgba(255, 255, 255, 0.1)"
-                      : "1px solid rgba(255, 255, 255, 0.8)",
-                  }}
-                >
-                  <strong style={styles.label}>{formattedKey}:</strong>
-                  <div style={{ marginTop: "0.5rem" }}>
-                    <span style={styles.text}>
-                      {typeof value === "boolean"
-                        ? value
-                          ? "Yes"
-                          : "No"
-                        : value}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-
-          {/* Novel Cover field - always show in edit mode even if not in novelDetails */}
-          {isEditing && !novel.novelDetails?.hasOwnProperty("novelCover") && (
-            <div
-              style={{
-                padding: "1.5rem",
-                borderRadius: "15px",
-                background: darkMode
-                  ? "rgba(255, 255, 255, 0.03)"
-                  : "rgba(255, 255, 255, 0.6)",
-                border: darkMode
-                  ? "1px solid rgba(255, 255, 255, 0.1)"
-                  : "1px solid rgba(255, 255, 255, 0.8)",
-              }}
-            >
-              <strong style={styles.label}>Novel Cover URL:</strong>
-              <div style={{ marginTop: "0.5rem" }}>
-                <input
-                  type="url"
-                  value={editedValues.novelDetails_novelCover || ""}
-                  onChange={(e) =>
-                    handleFieldChange("novelDetails_novelCover", e.target.value)
-                  }
-                  placeholder="Enter cover image URL"
-                  style={styles.input}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Show all fields from novel.novelOpinion (except rating) */}
-          {novel.novelOpinion &&
-            Object.entries(novel.novelOpinion).map(([key, value]) => {
-              if (
-                value === undefined ||
-                value === null ||
-                key === "_id" ||
-                key === "id" ||
-                key.toLowerCase().includes("id") ||
-                key === "rating"
-              ) {
-                return null;
-              }
-
-              const formattedKey = key
-                .replace(/([A-Z])/g, " $1")
-                .replace(/_/g, " ")
-                .replace(/^\w/, (c) => c.toUpperCase());
-
-              return (
-                <div
-                  key={key}
-                  style={{
-                    padding: "1.5rem",
-                    borderRadius: "15px",
-                    background: darkMode
-                      ? "rgba(255, 255, 255, 0.03)"
-                      : "rgba(255, 255, 255, 0.6)",
-                    border: darkMode
-                      ? "1px solid rgba(255, 255, 255, 0.1)"
-                      : "1px solid rgba(255, 255, 255, 0.8)",
-                  }}
-                >
-                  <strong style={styles.label}>{formattedKey}:</strong>
-                  <div style={{ marginTop: "0.5rem" }}>
-                    {isEditing ? (
-                      typeof value === "boolean" ? (
-                        <select
-                          value={
-                            editedValues[`novelOpinion_${key}`] !== undefined
-                              ? editedValues[`novelOpinion_${key}`]
-                              : value
-                          }
-                          onChange={(e) =>
-                            handleFieldChange(
-                              `novelOpinion_${key}`,
-                              e.target.value === "true"
-                            )
-                          }
-                          style={styles.input}
-                        >
-                          <option value="true">Yes</option>
-                          <option value="false">No</option>
-                        </select>
-                      ) : (
-                        <input
-                          type="text"
-                          value={editedValues[`novelOpinion_${key}`] || ""}
-                          onChange={(e) =>
-                            handleFieldChange(
-                              `novelOpinion_${key}`,
-                              e.target.value
-                            )
-                          }
-                          placeholder={`Enter ${formattedKey.toLowerCase()}`}
-                          style={styles.input}
-                        />
-                      )
-                    ) : (
-                      <span style={styles.text}>
-                        {typeof value === "boolean"
-                          ? value
-                            ? "Yes"
-                            : "No"
-                          : value}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+          {/* Novel Opinion Fields */}
+          {novelOpinionFields.map((field) => (
+            <FieldRenderer
+              key={field.key}
+              field={field}
+              value={field.value}
+              isEditing={isEditing}
+              editedValues={editedValues}
+              handleFieldChange={handleFieldChange}
+              styles={styles}
+              darkMode={darkMode}
+            />
+          ))}
         </div>
 
         <div
