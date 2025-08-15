@@ -57,9 +57,20 @@ export const novelApi = {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result = await response.json();
-      console.log("novelApi.addNovel: Success result:", result);
-      return result;
+      // Check if the response is in text format
+      const contentType = response.headers.get("content-type");
+      let result;
+      if (contentType && contentType.includes("text/plain")) {
+        // If the response is plain text, just return the text
+        const textResult = await response.text();
+        console.log("novelApi.addNovel: Success text response:", textResult);
+        return textResult;
+      } else {
+        // Otherwise, parse the response as JSON
+        result = await response.json();
+        console.log("novelApi.addNovel: Success result:", result);
+        return result;
+      }
     } catch (error) {
       console.error("novelApi.addNovel: ERROR in catch block:", error);
       throw error;

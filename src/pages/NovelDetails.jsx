@@ -10,6 +10,7 @@ import FieldRenderer from "../components/FieldRenderer";
 import { getFieldConfig } from "../utils/fieldConfig";
 import moment from "moment";
 import "./NovelDetails.css";
+import defaultCoverImage from "../assets/images/Sword_god.jpg";
 
 function NovelDetails() {
   const { id } = useParams();
@@ -18,6 +19,7 @@ function NovelDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const styles = createStyles(darkMode);
   const {
@@ -99,14 +101,19 @@ function NovelDetails() {
     isEditing
   );
 
-  // Ensure mcName is always displayed
+  // Ensure mcName and totalChapters are always displayed
   const ensureMcNameField = novelDetailsFields.some(
     (field) => field.key === "novelDetails_mcName"
   );
 
+  const ensureTotalChaptersField = novelDetailsFields.some(
+    (field) => field.key === "novelDetails_totalChapters"
+  );
+
   // If mcName is not in the fields, add it manually
   if (!ensureMcNameField) {
-    novelDetailsFields.push({
+    // Insert mcName at index 0 to ensure consistent position
+    novelDetailsFields.splice(0, 0, {
       key: "novelDetails_mcName",
       type: "text",
       label: "Main Character Name",
@@ -114,6 +121,53 @@ function NovelDetails() {
       placeholder: "Main Character Name",
     });
   }
+
+  // If totalChapters is not in the fields, add it manually
+  if (!ensureTotalChaptersField) {
+    novelDetailsFields.push({
+      key: "novelDetails_totalChapters",
+      type: "number",
+      label: "Total Chapters",
+      value: novel?.novelDetails?.totalChapters || "",
+      placeholder: "Total Chapters",
+    });
+  }
+
+  // Sort the fields to ensure consistent order between edit/view modes
+  const fieldOrder = [
+    "novelDetails_mcName",
+    "novelDetails_specialCharacteristicOfMc",
+    "novelDetails_status",
+    "novelDetails_totalChapters",
+    // Add other fields in the order you prefer
+  ];
+
+  // Sort the fields based on the defined order
+  novelDetailsFields.sort((a, b) => {
+    const indexA = fieldOrder.indexOf(a.key);
+    const indexB = fieldOrder.indexOf(b.key);
+
+    // If both fields are in our order list, sort by that order
+    if (indexA !== -1 && indexB !== -1) {
+      return indexA - indexB;
+    }
+    // If only a is in the list, it comes first
+    if (indexA !== -1) return -1;
+    // If only b is in the list, it comes first
+    if (indexB !== -1) return 1;
+    // If neither is in the list, maintain original order
+    return 0;
+  });
+
+  // Replace the enhanced save function with a simpler version
+  const handleEnhancedSaveChanges = async () => {
+    // Directly call the normal save function without auto-filling chapters frequency
+    const success = await saveChanges();
+    if (success) {
+      setShowComparisonModal(false);
+      setShowSuccessModal(true);
+    }
+  };
 
   return (
     <div
@@ -249,10 +303,7 @@ function NovelDetails() {
         {/* Left side - Image only (link moved above) */}
         <div style={{ flexShrink: 0 }}>
           <img
-            src={
-              novel.novelDetails?.novelCover ||
-              "https://i.imgur.com/sword-god-image.jpg"
-            }
+            src={novel.novelDetails?.novelCover || defaultCoverImage}
             alt={novel.name}
             style={{
               maxWidth: "250px",
@@ -262,7 +313,7 @@ function NovelDetails() {
               objectFit: "cover",
             }}
             onError={(e) => {
-              e.target.src = "https://i.imgur.com/sword-god-image.jpg";
+              e.target.src = defaultCoverImage;
             }}
           />
         </div>
@@ -621,7 +672,7 @@ function NovelDetails() {
               </button>
               <button
                 type="button"
-                onClick={saveChanges}
+                onClick={handleEnhancedSaveChanges}
                 disabled={isSaving}
                 style={{
                   padding: "0.5rem 1rem",
@@ -636,6 +687,40 @@ function NovelDetails() {
                 {isSaving ? "Saving..." : "Confirm Changes"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
+            <h2
+              style={{
+                fontSize: "1.5rem",
+                marginBottom: "1.5rem",
+                color: darkMode ? "#61dafb" : "#0066cc",
+              }}
+            >
+              Changes Saved Successfully!
+            </h2>
+            <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+              Your changes have been saved.
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowSuccessModal(false)}
+              style={{
+                padding: "0.5rem 1rem",
+                backgroundColor: darkMode ? "#61dafb" : "#0066cc",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

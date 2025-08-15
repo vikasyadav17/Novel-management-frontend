@@ -102,7 +102,12 @@ export const getFieldConfig = (novel, isEditing) => {
     ];
 
     fieldsToEnsure.forEach((fieldName) => {
-      if (!novel.novelDetails?.hasOwnProperty(fieldName)) {
+      if (
+        !Object.prototype.hasOwnProperty.call(
+          novel.novelDetails || {},
+          fieldName
+        )
+      ) {
         const fieldConfigs = {
           novelCover: {
             key: "novelDetails_novelCover",
