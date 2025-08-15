@@ -46,3 +46,102 @@ html body .novel-details.dark-mode {
 .novel-details.dark-mode li {
   color: #ffffff !important;
 }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes starGlow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 1));
+  }
+  50% {
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1))
+      drop-shadow(0 0 25px rgba(255, 215, 0, 0.8));
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.novel-details {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Enhanced scrollbar */
+.novel-details::-webkit-scrollbar {
+  width: 8px;
+}
+
+.novel-details::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.novel-details::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #61dafb, #a64dff);
+  border-radius: 4px;
+}
+
+.novel-details::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #50c8f0, #9333ff);
+}
+
+/* Glassmorphism effects */
+.glass-effect {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Remove any unwanted background styles that might be causing the blue section */
+
+/* Make sure there are no global styles affecting the layout */
+.novel-details * {
+  box-sizing: border-box;
+}
+
+/* Ensure no unwanted backgrounds */
+.novel-details::before,
+.novel-details::after {
+  display: none;
+}

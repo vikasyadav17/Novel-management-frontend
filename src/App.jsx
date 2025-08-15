@@ -7,6 +7,7 @@ import Search from "./pages/Search"; // import Search page
 import BulkUploadPage from "./pages/BulkUploadPage"; // Import BulkUploadPage
 import NovelDetails from "./pages/NovelDetails"; // Import NovelDetails
 import "./App.css";
+import { novelApi } from "./services/novelApi"; // <-- add this import
 
 function App() {
   const [error, setError] = useState(null);
@@ -14,11 +15,37 @@ function App() {
 
   const handleAddNovel = async (newNovel) => {
     try {
-      // You can call your API here if needed
-      // await novelApi.addNovel(newNovel);
+      const resp = await novelApi.addNovel(newNovel);
+      const data = resp?.data ?? resp;
+      console.log("Add novel response:", resp, data);
+
+      // Prefer server message, fallback to generic text
+      const message = data?.message || data?.msg || "Novel added successfully";
+
+      // If server returns explicit success flag use it, otherwise infer from HTTP status
+      const success =
+        typeof data?.success === "boolean"
+          ? data.success
+          : resp?.status >= 200 && resp?.status < 300;
+
+      if (success) {
+        alert(message);
+      } else {
+        // Server accepted request but responded with a domain-level failure (e.g. validation)
+        alert(message || "Request completed but returned invalid result.");
+      }
+
+      return resp;
     } catch (err) {
-      console.error(err);
-      setError("Failed to add novel");
+      console.error("Failed to add novel:", err);
+      const backendMessage =
+        err?.response?.data?.message ||
+        err?.response?.data?.msg ||
+        err?.message ||
+        "Failed to add novel";
+      setError("Failed to add novel: " + backendMessage);
+      alert("Error adding novel: " + backendMessage);
+      throw err; // re-throw so callers can handle if needed
     }
   };
 
@@ -205,7 +232,7 @@ function App() {
                 />
               }
             />
-            <Route path="/library" element={<Library />} />
+            <Route path="/library" element={<Library darkMode={darkMode} />} />
             <Route
               path="/search"
               element={<Search darkMode={darkMode} />}

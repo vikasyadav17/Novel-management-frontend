@@ -1,44 +1,45 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useContext } from "react";
+import React from "react";
 import { novelApi } from "../services/novelApi";
 import { ThemeContext } from "../context/ThemeContext";
-import swordGodImage from "../assets/images/sword_god.jpg";
+import { createStyles } from "../styles/novelDetailsStyles";
+import { useNovelEdit } from "../hooks/useNovelEdit";
+import NovelHeader from "../components/NovelHeader";
+import FieldRenderer from "../components/FieldRenderer";
+import { getFieldConfig } from "../utils/fieldConfig";
+import moment from "moment";
 import "./NovelDetails.css";
+import { getCoverImage, handleImageError } from "../utils/coverUtils";
 
 function NovelDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { darkMode } = useContext(ThemeContext);
   const [novel, setNovel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // Add editing state variables
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedValues, setEditedValues] = useState({});
-  const [showComparisonModal, setShowComparisonModal] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Force re-render when darkMode changes
-  const [_, forceUpdate] = useState({});
-
-  useEffect(() => {
-    console.log("Dark mode state:", darkMode);
-    // Force component update when dark mode changes
-    forceUpdate({});
-  }, [darkMode]);
+  const styles = createStyles(darkMode);
+  const {
+    isEditing,
+    editedValues,
+    showComparisonModal,
+    isSaving,
+    startEditing,
+    cancelEditing,
+    handleFieldChange,
+    showChanges,
+    saveChanges,
+    setShowComparisonModal,
+  } = useNovelEdit(novel, setNovel, id);
 
   useEffect(() => {
     const fetchNovel = async () => {
       try {
         const response = await novelApi.getNovelById(id);
         setNovel(response.data);
-
-        // Check if novel is favorite from localStorage
-        const favorites = JSON.parse(
-          localStorage.getItem("favoriteNovels") || "[]"
-        );
-        setIsFavorite(favorites.includes(response.data._id));
       } catch (err) {
         setError("Failed to load novel details.");
       } finally {
@@ -48,551 +49,505 @@ function NovelDetails() {
     fetchNovel();
   }, [id]);
 
-  // Function to toggle favorite status
-  const toggleFavorite = () => {
-    const newFavoriteStatus = !isFavorite;
-    setIsFavorite(newFavoriteStatus);
-
-    // Update localStorage
-    const favorites = JSON.parse(
-      localStorage.getItem("favoriteNovels") || "[]"
-    );
-    if (newFavoriteStatus) {
-      // Add to favorites if not already there
-      if (!favorites.includes(novel._id)) {
-        localStorage.setItem(
-          "favoriteNovels",
-          JSON.stringify([...favorites, novel._id])
-        );
-      }
-    } else {
-      // Remove from favorites
-      localStorage.setItem(
-        "favoriteNovels",
-        JSON.stringify(favorites.filter((favId) => favId !== novel._id))
-      );
-    }
-  };
-
-  // Enhanced styling for container with subtle gradient
-  const containerStyle = {
-    color: darkMode ? "#ffffff" : "#333333",
-    background: darkMode
-      ? "linear-gradient(145deg, #121212 0%, #1a1a1a 100%)"
-      : "linear-gradient(145deg, #ffffff 0%, #f8f8f8 100%)",
-    padding: "2.5rem",
-    borderRadius: "16px",
-    boxShadow: darkMode
-      ? "0 10px 25px rgba(0, 0, 0, 0.5)"
-      : "0 10px 25px rgba(0, 0, 0, 0.08)",
-    maxWidth: "900px",
-    margin: "2.5rem auto",
-    transition: "all 0.4s ease",
-    position: "relative",
-    overflowX: "hidden", // Prevent horizontal scrolling
-  };
-
-  // Improved text styling with better readability
-  const textStyle = {
-    color: darkMode ? "#ffffff" : "#333333",
-    lineHeight: "1.8",
-    fontSize: "1.05rem",
-    transition: "color 0.3s ease",
-  };
-
-  // Enhanced heading style with accent underline
-  const headingStyle = {
-    color: darkMode ? "#ffffff" : "#222222",
-    fontSize: "2.75rem",
-    fontWeight: "700",
-    marginBottom: "2rem",
-    paddingBottom: "0.75rem",
-    position: "relative",
-    textShadow: darkMode ? "2px 2px 4px rgba(0, 0, 0, 0.5)" : "none",
-    borderBottom: "none",
-    textAlign: "center",
-    "&:after": {
-      content: "''",
-      position: "absolute",
-      bottom: 0,
-      left: "50%",
-      transform: "translateX(-50%)",
-      width: "80px",
-      height: "4px",
-      background: darkMode ? "#61dafb" : "#0066cc",
-      borderRadius: "4px",
-    },
-  };
-
-  // Enhanced styling for labels with accent color
-  const labelStyle = {
-    ...textStyle,
-    fontWeight: "700",
-    fontSize: "1.1rem",
-    display: "inline-block",
-    minWidth: "150px", // Slightly wider for better alignment
-    color: darkMode ? "#61dafb" : "#0066cc",
-    transition: "all 0.3s ease",
-  };
-
-  // Enhanced styling for links with hover effect
-  const linkStyle = {
-    color: darkMode ? "#61dafb" : "#0066cc",
-    textDecoration: "none",
-    borderBottom: "1px dotted",
-    paddingBottom: "2px",
-    transition: "all 0.2s ease-in-out",
-    fontWeight: "500",
-    "&:hover": {
-      color: darkMode ? "#a6e9ff" : "#004499",
-      borderBottomStyle: "solid",
-    },
-  };
-
-  // New style for content sections
-  const sectionStyle = {
-    backgroundColor: darkMode
-      ? "rgba(255, 255, 255, 0.03)"
-      : "rgba(0, 0, 0, 0.01)",
-    padding: "1.5rem",
-    borderRadius: "12px",
-    marginBottom: "2rem",
-    boxShadow: darkMode
-      ? "inset 0 1px 3px rgba(255, 255, 255, 0.05)"
-      : "inset 0 1px 3px rgba(0, 0, 0, 0.05)",
-    transition: "all 0.3s ease",
-  };
-
-  // Add function to handle bulk upload of novel details and opinion
-  const handleBulkUpload = async () => {
-    if (!novel) return;
-
-    try {
-      // Prepare the data to include both novel details and opinion
-      const bulkData = {
-        novelId: novel._id,
-        novelDetails: novel.novelDetails || {},
-        novelOpinion: novel.novelOpinion || {},
-      };
-
-      console.log("Sending bulk data:", bulkData);
-
-      // Send the bulk data to the backend
-      const response = await novelApi.bulkUpload(bulkData);
-
-      // Handle successful upload
-      if (response.status === 200) {
-        alert("Novel details and opinion uploaded successfully");
-      }
-    } catch (error) {
-      console.error("Error in bulk upload:", error);
-      alert("Failed to upload novel details and opinion");
-    }
-  };
-
-  // Add effect to automatically send both novelDetails and novelOpinion
-  // when the tab for bulk upload is active
-  useEffect(() => {
-    // Check if we're in bulk upload mode - this could be based on a prop or URL parameter
-    const isBulkUploadMode = window.location.search.includes("bulkUpload=true");
-
-    if (isBulkUploadMode && novel && !loading) {
-      handleBulkUpload();
-    }
-  }, [novel, loading]);
-
-  // Function to handle field changes
-  const handleFieldChange = (field, value) => {
-    setEditedValues({
-      ...editedValues,
-      [field]: value,
-    });
-  };
-
-  // Function to enter edit mode - include only fields that exist in your data model
-  const startEditing = () => {
-    setIsEditing(true);
-    // Initialize editedValues with only fields that exist in your data model
-    setEditedValues({
-      name: novel.name,
-      originalName: novel.originalName || "",
-      link: novel.link || "",
-      tags: novel.tags || "",
-      // Include these fields only if they exist in your data model
-      ...(novel.mcName !== undefined && { mcName: novel.mcName || "" }),
-      ...(novel.specialCharacteristicOfMc !== undefined && {
-        specialCharacteristicOfMc: novel.specialCharacteristicOfMc || "",
-      }),
-      // Remove author, status, and releaseYear if they don't exist in your model
-    });
-  };
-
-  // Function to cancel editing
-  const cancelEditing = () => {
-    setIsEditing(false);
-    setEditedValues({});
-  };
-
-  // Function to show the comparison modal
-  const showChanges = () => {
-    // Only proceed if there are actual changes
-    const hasChanges = Object.keys(editedValues).some(
-      (key) => editedValues[key] !== (novel[key] || "")
-    );
-
-    if (hasChanges) {
-      setShowComparisonModal(true);
-    } else {
-      alert("No changes detected");
-    }
-  };
-
-  // Function to save changes after confirmation
-  const saveChanges = async () => {
-    setIsSaving(true);
-    try {
-      // Only send fields that have changed
-      const changedFields = {};
-      Object.keys(editedValues).forEach((key) => {
-        if (editedValues[key] !== (novel[key] || "")) {
-          changedFields[key] = editedValues[key];
-        }
-      });
-
-      // Make the API call to update the novel
-      const response = await novelApi.updateNovel(novel._id, changedFields);
-
-      // Update the local state with the new values
-      setNovel({
-        ...novel,
-        ...changedFields,
-      });
-
-      // Exit edit mode and reset
-      setIsEditing(false);
-      setEditedValues({});
-      setShowComparisonModal(false);
-    } catch (error) {
-      console.error("Error saving changes:", error);
-      alert("Failed to save changes");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // Add style for edit button
-  const editButtonStyle = {
-    position: "absolute",
-    top: "1.25rem",
-    left: "1.25rem",
-    padding: "0.5rem 1rem",
-    backgroundColor: darkMode ? "#61dafb" : "#0066cc",
-    color: "white",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-    transition: "all 0.2s ease",
-    "&:hover": {
-      backgroundColor: darkMode ? "#50c8f0" : "#0055b0",
-      transform: "translateY(-2px)",
-    },
-  };
-
-  // Add style for input fields
-  const inputStyle = {
-    width: "100%",
-    padding: "0.5rem",
-    backgroundColor: darkMode ? "#2a2a2a" : "#f5f5f5",
-    border: darkMode ? "1px solid #444" : "1px solid #ddd",
-    borderRadius: "4px",
-    color: darkMode ? "#ffffff" : "#333333",
-    fontSize: "1rem",
-    transition: "all 0.2s ease",
-    "&:focus": {
-      outline: "none",
-      borderColor: darkMode ? "#61dafb" : "#0066cc",
-      boxShadow: `0 0 0 2px ${
-        darkMode ? "rgba(97, 218, 251, 0.2)" : "rgba(0, 102, 204, 0.2)"
-      }`,
-    },
-  };
-
-  // Modal styles
-  const modalOverlayStyle = {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1000,
-  };
-
-  const modalContentStyle = {
-    backgroundColor: darkMode ? "#1a1a1a" : "#ffffff",
-    padding: "2rem",
-    borderRadius: "8px",
-    maxWidth: "800px",
-    width: "90%",
-    maxHeight: "80vh",
-    overflowY: "auto",
-    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
-  };
-
-  // Helper function to format dates in DD MMM YYYY format with spaces
   const formatDate = (dateString) => {
     if (!dateString) return "";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Invalid Date";
-
-    const day = date.getDate().toString().padStart(2, "0");
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    const month = months[date.getMonth()];
-    const year = date.getFullYear();
-
-    return `${day} ${month} ${year}`; // Added spaces between components
+    return moment(dateString).format("DD MMM YYYY");
   };
 
-  if (loading)
+  // Simple save function without extra functionality
+  const handleSaveChanges = async () => {
+    const success = await saveChanges();
+    if (success) {
+      setShowComparisonModal(false);
+      setShowSuccessModal(true);
+    }
+  };
+
+  if (loading) {
     return (
       <div
-        className="loading-indicator"
-        style={{
-          ...containerStyle,
-          textAlign: "center",
-          padding: "3rem",
-          fontSize: "1.25rem",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "400px",
-        }}
+        style={{ ...styles.container, textAlign: "center", minHeight: "400px" }}
       >
-        <div>
-          <div
-            className="spinner"
-            style={{
-              border: `4px solid ${darkMode ? "#333" : "#f3f3f3"}`,
-              borderTop: `4px solid ${darkMode ? "#61dafb" : "#0066cc"}`,
-              borderRadius: "50%",
-              width: "50px",
-              height: "50px",
-              margin: "0 auto 20px auto",
-              animation: "spin 1s linear infinite",
-            }}
-          ></div>
-          Loading novel details...
-        </div>
+        <div>Loading novel details...</div>
       </div>
     );
+  }
 
-  if (error) return <div style={containerStyle}>{error}</div>;
+  if (error) return <div style={styles.container}>{error}</div>;
+  if (!novel) return <div style={styles.container}>Novel not found</div>;
+
+  // Get field configs from utility
+  const { novelDetailsFields, novelOpinionFields } = getFieldConfig(
+    novel,
+    isEditing
+  );
+
+  // Essential fields to always display, even if empty
+  const essentialFields = [
+    "novelDetails_mcName",
+    "novelDetails_specialCharacteristicOfMc",
+    "novelDetails_status",
+    "novelDetails_totalChapters",
+  ];
+
+  // Ensure essential fields are always included
+  essentialFields.forEach((fieldKey) => {
+    const exists = novelDetailsFields.some((field) => field.key === fieldKey);
+
+    if (!exists) {
+      // Extract the actual field name from the key
+      const fieldName = fieldKey.replace("novelDetails_", "");
+
+      // Create default field configuration
+      const defaultValue = novel?.novelDetails?.[fieldName] || "";
+
+      // Generate display label from field name (convert camelCase to Title Case)
+      const label = fieldName
+        .replace(/([A-Z])/g, " $1")
+        .replace(/^./, (str) => str.toUpperCase());
+
+      // Add the field to novelDetailsFields
+      novelDetailsFields.push({
+        key: fieldKey,
+        type: fieldName === "totalChapters" ? "number" : "text",
+        label,
+        value: defaultValue,
+        placeholder: label,
+      });
+    }
+  });
+
+  // Sort the fields to ensure consistent display order
+  const fieldOrder = essentialFields;
+
+  novelDetailsFields.sort((a, b) => {
+    const indexA = fieldOrder.indexOf(a.key);
+    const indexB = fieldOrder.indexOf(b.key);
+
+    // If both fields are in the specified order, sort accordingly
+    if (indexA !== -1 && indexB !== -1) {
+      return indexA - indexB;
+    }
+    // If only a is in the list, it comes first
+    if (indexA !== -1) return -1;
+    // If only b is in the list, it comes first
+    if (indexB !== -1) return 1;
+    // For other fields, keep original order
+    return 0;
+  });
 
   return (
     <div
       className={`novel-details ${darkMode ? "dark-mode" : ""}`}
-      style={containerStyle}
+      style={{
+        ...styles.container,
+        background: darkMode
+          ? "linear-gradient(145deg, #1a1a1a 0%, #121212 100%)"
+          : "linear-gradient(145deg, #f9f9f9 0%, #ffffff 100%)",
+      }}
     >
-      {/* Gradient decoration at top */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: "6px",
-          background: `linear-gradient(90deg, ${
-            darkMode ? "#61dafb" : "#0066cc"
-          } 0%, ${darkMode ? "#a64dff" : "#8c43ff"} 100%)`,
-          borderRadius: "16px 16px 0 0",
-        }}
-      ></div>
-
-      {/* Add Edit Button */}
-      {!isEditing ? (
-        <button onClick={startEditing} style={editButtonStyle}>
-          Edit
-        </button>
-      ) : (
-        <div
-          style={{
-            position: "absolute",
-            top: "1.25rem",
-            left: "1.25rem",
-            display: "flex",
-            gap: "0.5rem",
-          }}
-        >
-          <button
-            onClick={cancelEditing}
-            style={{
-              ...editButtonStyle,
-              backgroundColor: darkMode ? "#444" : "#ccc",
-            }}
-          >
-            Cancel
-          </button>
-          <button onClick={showChanges} style={editButtonStyle}>
-            Review Changes
-          </button>
-        </div>
-      )}
-
-      {/* Bookmark icon */}
-      <div
-        className="bookmark-icon"
-        onClick={toggleFavorite}
+      {/* Back Button - Enhanced */}
+      <button
+        onClick={() => navigate("/library")}
         style={{
           position: "absolute",
           top: "1.25rem",
-          right: "1.25rem",
+          left: "1.25rem",
+          display: "flex",
+          alignItems: "center",
+          gap: "0.5rem",
+          backgroundColor: darkMode
+            ? "rgba(51, 51, 51, 0.8)"
+            : "rgba(240, 240, 240, 0.8)",
+          color: darkMode ? "#f7f7fb" : "#333",
+          border: "none",
+          padding: "0.5rem 1rem",
+          borderRadius: "8px", // More rounded
           cursor: "pointer",
-          zIndex: 10,
+          fontWeight: "500",
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+          zIndex: 5,
           transition: "all 0.2s ease",
-          transform: "scale(1)",
-          "&:hover": {
-            transform: "scale(1.15)",
-          },
+          backdropFilter: "blur(5px)",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "translateY(-2px)";
+          e.currentTarget.style.boxShadow = "0 6px 8px rgba(0, 0, 0, 0.15)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
         }}
       >
         <svg
-          width="32"
-          height="40"
-          viewBox="0 0 32 40"
-          fill={isFavorite ? "#000000" : "none"}
-          stroke={darkMode ? "#ffffff" : "#333333"}
-          strokeWidth="1.5"
-          style={{
-            transition: "all 0.3s ease",
-          }}
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          {/* Flag/bookmark shape */}
-          <path d="M2 2V38L16 30L30 38V2H2Z" />
-
-          {/* Star in the middle */}
-          <path
-            d="M16 7L18.5 12.5L24.5 13L20 17L21.5 23L16 20L10.5 23L12 17L7.5 13L13.5 12.5L16 7Z"
-            fill={isFavorite ? "#ffffff" : "none"}
-            stroke={isFavorite ? "none" : darkMode ? "#ffffff" : "#333333"}
-          />
+          <path d="M19 12H5" />
+          <polyline points="12 19 5 12 12 5" />
         </svg>
-      </div>
+        Back
+      </button>
 
-      {/* Header section with image and title */}
+      {/* Edit/Cancel/Review Buttons - Fixed to show proper buttons based on state */}
       <div
         style={{
+          position: "absolute",
+          top: "1.25rem",
+          left: "7rem", // Position after the Back button
+          right: "1.25rem", // More space on right since bookmark is removed
           display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          marginBottom: "2rem",
+          height: "40px",
         }}
       >
+        {!isEditing ? (
+          // When not editing, show only the Edit button
+          <button
+            onClick={startEditing}
+            style={{
+              flex: 1,
+              background: "linear-gradient(90deg, #007bff, #0062cc)",
+              color: "white",
+              border: "none",
+              borderRadius: "8px", // Fully rounded since it's a single button
+              fontWeight: "600",
+              cursor: "pointer",
+              boxShadow: "0 4px 6px rgba(0, 123, 255, 0.2)",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background =
+                "linear-gradient(90deg, #0062cc, #004799)";
+              e.currentTarget.style.boxShadow =
+                "0 6px 8px rgba(0, 123, 255, 0.3)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background =
+                "linear-gradient(90deg, #007bff, #0062cc)";
+              e.currentTarget.style.boxShadow =
+                "0 4px 6px rgba(0, 123, 255, 0.2)";
+            }}
+          >
+            Edit
+          </button>
+        ) : (
+          // When in edit mode, show Cancel and Review Changes buttons
+          <>
+            <button
+              onClick={cancelEditing}
+              style={{
+                flex: "0 0 100px",
+                backgroundColor: darkMode
+                  ? "rgba(68, 68, 68, 0.9)"
+                  : "rgba(204, 204, 204, 0.9)",
+                color: darkMode ? "#f7f7fb" : "#333",
+                border: "none",
+                borderRadius: "8px 0 0 8px", // More rounded on left side
+                fontWeight: "500",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                backdropFilter: "blur(5px)",
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={showChanges}
+              style={{
+                flex: 1,
+                background: "linear-gradient(90deg, #007bff, #0062cc)",
+                color: "white",
+                border: "none",
+                borderRadius: "0 8px 8px 0", // More rounded on right side
+                fontWeight: "600",
+                cursor: "pointer",
+                boxShadow: "0 4px 6px rgba(0, 123, 255, 0.2)",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background =
+                  "linear-gradient(90deg, #0062cc, #004799)";
+                e.currentTarget.style.boxShadow =
+                  "0 6px 8px rgba(0, 123, 255, 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background =
+                  "linear-gradient(90deg, #007bff, #0062cc)";
+                e.currentTarget.style.boxShadow =
+                  "0 4px 6px rgba(0, 123, 255, 0.2)";
+              }}
+            >
+              Review Changes
+            </button>
+          </>
+        )}
+      </div>
+
+      <NovelHeader
+        novel={novel}
+        isEditing={isEditing}
+        editedValues={editedValues}
+        handleFieldChange={handleFieldChange}
+        styles={styles}
+      />
+
+      {/* Link to novel - Enhanced with better styling */}
+      <div
+        style={{
+          marginBottom: "1.5rem",
+          padding: "0 2rem",
+          textAlign: "center",
+        }}
+      >
+        {isEditing ? (
+          <>
+            <strong style={{ ...styles.label, fontSize: "1.1rem" }}>
+              Link:
+            </strong>
+            <input
+              type="url"
+              value={editedValues.link || ""}
+              onChange={(e) => handleFieldChange("link", e.target.value)}
+              placeholder="Novel URL"
+              style={{
+                ...styles.input,
+                marginTop: "0.5rem",
+                borderRadius: "8px",
+                padding: "10px 16px",
+                fontSize: "1rem",
+                transition: "all 0.2s ease",
+              }}
+            />
+          </>
+        ) : (
+          novel.link && (
+            <a
+              href={novel.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: darkMode ? "#61dafb" : "#0066cc",
+                textDecoration: "none",
+                fontWeight: "600",
+                fontSize: "1.2rem",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                padding: "8px 16px",
+                borderRadius: "8px",
+                transition: "all 0.2s ease",
+                background: darkMode
+                  ? "rgba(97, 218, 251, 0.1)"
+                  : "rgba(0, 102, 204, 0.05)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = darkMode
+                  ? "rgba(97, 218, 251, 0.2)"
+                  : "rgba(0, 102, 204, 0.1)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = darkMode
+                  ? "rgba(97, 218, 251, 0.1)"
+                  : "rgba(0, 102, 204, 0.05)";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              {novel.link}
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15,3 21,3 21,9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+            </a>
+          )
+        )}
+      </div>
+
+      {/* Novel Cover Image and Description - Fixed vertical alignment */}
+      <div
+        style={{
+          marginBottom: "2rem",
+          padding: "0 2rem",
+          position: "relative", // Use relative positioning for better control
+        }}
+      >
+        {/* Left side - Image with vertical centering */}
         <div
           style={{
-            position: "relative",
-            marginBottom: "2rem",
-            padding: "0.5rem",
-            borderRadius: "12px",
-            background: darkMode
-              ? "rgba(255, 255, 255, 0.05)"
-              : "rgba(0, 0, 0, 0.02)",
+            position: "absolute",
+            left: "2rem",
+            top: "50%",
+            transform: "translateY(-50%)",
+            width: "250px",
+            height: "250px", // Match Library component's fixed height
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: darkMode ? "#272727" : "#f5f5f5", // Move background to container
+            borderRadius: "15px",
             boxShadow: darkMode
-              ? "0 8px 20px rgba(0, 0, 0, 0.4)"
-              : "0 8px 20px rgba(0, 0, 0, 0.1)",
+              ? "0 12px 32px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3)"
+              : "0 12px 32px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1)",
+            overflow: "hidden", // Ensure content stays within rounded corners
           }}
         >
           <img
-            src={novel.imageUrl || swordGodImage}
-            alt={`Cover of ${novel.name}`}
+            src={getCoverImage(novel)}
+            alt={novel.name}
             style={{
-              maxWidth: "280px",
-              minHeight: "400px",
-              width: "100%",
-              height: "420px",
-              objectFit: "cover",
-              borderRadius: "8px",
-              transition: "transform 0.3s ease",
-              "&:hover": {
-                transform: "scale(1.02)",
-              },
+              width: "100%", // Exactly like Library
+              height: "100%", // Exactly like Library
+              objectFit: "contain", // Exactly like Library
+              padding: "5px", // Exactly like Library
             }}
+            onError={handleImageError}
           />
         </div>
 
-        {/* Original Name - editable */}
-        {isEditing ? (
-          <input
-            type="text"
-            value={editedValues.originalName || ""}
-            onChange={(e) => handleFieldChange("originalName", e.target.value)}
-            placeholder="Original Name (Optional)"
-            style={{
-              ...inputStyle,
-              textAlign: "center",
-              fontStyle: "italic",
-              marginBottom: "0.75rem",
-              fontSize: "1.2rem",
-            }}
-          />
-        ) : (
-          novel.originalName && (
-            <div
-              style={{
-                ...textStyle,
-                fontSize: "1.2rem",
-                marginBottom: "0.75rem",
-                color: darkMode ? "#aaaaaa" : "#666666",
-                fontStyle: "italic",
-                fontWeight: "bold",
-              }}
-            >
-              {novel.originalName}
+        {/* Description - With left margin to accommodate the image */}
+        <div
+          style={{
+            marginLeft: "280px", // Space for the image (250px) plus some gap
+            minHeight: "350px", // Ensure enough height for the image to be centered
+          }}
+        >
+          {(novel.novelDetails?.description || isEditing) && (
+            <div>
+              {isEditing ? (
+                <>
+                  <strong
+                    style={{
+                      ...styles.label,
+                      display: "block",
+                      marginBottom: "0.75rem",
+                    }}
+                  >
+                    Description:
+                  </strong>
+                  <textarea
+                    value={editedValues.description || ""}
+                    onChange={(e) =>
+                      handleFieldChange("description", e.target.value)
+                    }
+                    placeholder="Enter novel description"
+                    style={{
+                      ...styles.input,
+                      minHeight: "300px",
+                      resize: "vertical",
+                      lineHeight: "1.6",
+                      width: "100%",
+                    }}
+                  />
+                </>
+              ) : (
+                <div
+                  style={{
+                    ...styles.text,
+                    padding: "1.25rem",
+                    backgroundColor: darkMode
+                      ? "rgba(255,255,255,0.03)"
+                      : "rgba(0,0,0,0.01)",
+                    borderRadius: "10px",
+                    borderLeft: darkMode
+                      ? "4px solid #61dafb"
+                      : "4px solid #0066cc",
+                    lineHeight: "1.9",
+                    whiteSpace: "pre-wrap",
+                    textAlign: "left",
+                    fontSize: "1.1rem",
+                    minHeight: "300px",
+                  }}
+                >
+                  {novel.novelDetails.description}
+                </div>
+              )}
             </div>
-          )
-        )}
-
-        {/* Novel Name - editable */}
-        {isEditing ? (
-          <input
-            type="text"
-            value={editedValues.name}
-            onChange={(e) => handleFieldChange("name", e.target.value)}
-            placeholder="Novel Name"
-            style={{
-              ...inputStyle,
-              textAlign: "center",
-              fontSize: "2rem",
-              fontWeight: "bold",
-              marginBottom: "1.5rem",
-            }}
-          />
-        ) : (
-          <h1 style={{ ...headingStyle, marginBottom: "1.5rem" }}>
-            {novel.name}
-          </h1>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* All details in a single continuous section */}
-      <div style={{ ...sectionStyle, padding: "2rem" }}>
+      {/* Tags section */}
+      {((novel.novelDetails?.tags &&
+        novel.novelDetails.tags.trim &&
+        novel.novelDetails.tags.trim() !== "") ||
+        isEditing) && (
+        <div style={{ marginBottom: "2rem", padding: "0 2rem" }}>
+          {isEditing ? (
+            <>
+              <strong
+                style={{
+                  ...styles.label,
+                  display: "block",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Tags:
+              </strong>
+              <textarea
+                value={editedValues.novelDetails_tags || ""}
+                onChange={(e) =>
+                  handleFieldChange("novelDetails_tags", e.target.value)
+                }
+                placeholder="Enter tags separated by commas"
+                style={{
+                  ...styles.input,
+                  minHeight: "80px",
+                  resize: "vertical",
+                }}
+              />
+            </>
+          ) : (
+            novel.novelDetails?.tags &&
+            novel.novelDetails.tags.trim() !== "" && (
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "0.5rem",
+                  justifyContent: "center",
+                }}
+              >
+                {novel.novelDetails.tags.split(",").map((tag, index) => (
+                  <span
+                    key={index}
+                    style={{
+                      ...styles.text,
+                      backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
+                      padding: "0.25rem 0.75rem",
+                      borderRadius: "20px",
+                      fontSize: "0.95rem",
+                      textTransform: "uppercase", // Added this line to ensure tags are uppercase
+                      fontWeight: "500", // Added slightly bolder font for better uppercase readability
+                      letterSpacing: "0.5px", // Added slight letter spacing for better uppercase readability
+                    }}
+                  >
+                    {tag.trim().toUpperCase()} {/* Changed to uppercase */}
+                  </span>
+                ))}
+              </div>
+            )
+          )}
+        </div>
+      )}
+
+      {/* Details Section */}
+      <div style={{ ...styles.section, padding: "2rem" }}>
         {/* Unified grid for all details */}
         <div
           style={{
@@ -602,404 +557,69 @@ function NovelDetails() {
             marginBottom: "2rem",
           }}
         >
-          {/* Only include fields that exist in your data model */}
-          {/* If genre exists */}
+          {/* Genre field */}
           {(novel.genre || isEditing) && (
-            <div>
-              <strong style={labelStyle}>Genre:</strong>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={editedValues.genre || ""}
-                  onChange={(e) => handleFieldChange("genre", e.target.value)}
-                  placeholder="Genre"
-                  style={inputStyle}
-                />
-              ) : (
-                <span
-                  style={{
-                    ...textStyle,
-                    backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
-                    padding: "0.25rem 0.75rem",
-                    borderRadius: "20px",
-                    fontSize: "0.95rem",
-                  }}
-                >
-                  {novel.genre}
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Show all fields from novel.novelDetails */}
-          {novel.novelDetails &&
-            Object.entries(novel.novelDetails).map(([key, value]) => {
-              // Skip if value is empty or it's an ID field
-              if (
-                !value ||
-                key === "_id" ||
-                key === "id" ||
-                key.toLowerCase().includes("id")
-              ) {
-                return null;
-              }
-
-              // Format the key name for display
-              const formattedKey = key
-                .replace(/([A-Z])/g, " $1")
-                .replace(/_/g, " ")
-                .replace(/^\w/, (c) => c.toUpperCase());
-
-              // Special handling for description since it's longer
-              if (key === "description") {
-                return null; // We'll render description separately
-              }
-
-              // For ratings, show with stars if applicable
-              if (key.toLowerCase().includes("rating")) {
-                return (
-                  <div key={key}>
-                    <strong style={labelStyle}>{formattedKey}:</strong>
-                    <div
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                      }}
-                    >
-                      <span style={textStyle}>{value}/10</span>
-                      <div
-                        style={{
-                          marginLeft: "0.5rem",
-                          display: "inline-flex",
-                          alignItems: "center",
-                        }}
-                      >
-                        {[...Array(5)].map((_, i) => (
-                          <span
-                            key={i}
-                            style={{
-                              color:
-                                i < Math.round(value / 2)
-                                  ? darkMode
-                                    ? "#61dafb"
-                                    : "#0066cc"
-                                  : darkMode
-                                  ? "#444"
-                                  : "#ddd",
-                              marginRight: "2px",
-                            }}
-                          >
-                            ★
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-
-              // For all other values
-              return (
-                <div key={key}>
-                  <strong style={labelStyle}>{formattedKey}:</strong>
-                  <span style={textStyle}>
-                    {typeof value === "boolean"
-                      ? value
-                        ? "Yes"
-                        : "No"
-                      : value}
-                  </span>
-                </div>
-              );
-            })}
-
-          {/* Show all fields from novel.novelOpinion */}
-          {novel.novelOpinion &&
-            Object.entries(novel.novelOpinion).map(([key, value]) => {
-              // Skip if value is empty or it's an ID field or we've already handled it
-              if (
-                value === undefined ||
-                value === null ||
-                key === "_id" ||
-                key === "id" ||
-                key.toLowerCase().includes("id")
-              ) {
-                return null;
-              }
-
-              // Format the key name for display
-              const formattedKey = key
-                .replace(/([A-Z])/g, " $1")
-                .replace(/_/g, " ")
-                .replace(/^\w/, (c) => c.toUpperCase());
-
-              // Handle special rating with stars
-              if (key === "rating") {
-                return (
-                  <div key={key}>
-                    <strong style={labelStyle}>Personal Rating:</strong>
-                    <div
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                      }}
-                    >
-                      <span style={textStyle}>{value}/5</span>
-                      <div
-                        style={{
-                          marginLeft: "0.5rem",
-                          display: "inline-flex",
-                          alignItems: "center",
-                        }}
-                      >
-                        {[...Array(5)].map((_, i) => (
-                          <span
-                            key={i}
-                            style={{
-                              color:
-                                i < value
-                                  ? darkMode
-                                    ? "#FFC107"
-                                    : "#FFA000"
-                                  : darkMode
-                                  ? "#444"
-                                  : "#ddd",
-                              marginRight: "2px",
-                              fontSize: "1.1rem",
-                            }}
-                          >
-                            ★
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-
-              // For boolean values like worthToContinue
-              if (typeof value === "boolean") {
-                return (
-                  <div key={key}>
-                    <strong style={labelStyle}>{formattedKey}:</strong>
-                    <span
-                      style={{
-                        ...textStyle,
-                        color: value
-                          ? darkMode
-                            ? "#4CAF50"
-                            : "#2E7D32"
-                          : darkMode
-                          ? "#F44336"
-                          : "#C62828",
-                        fontWeight: "600",
-                      }}
-                    >
-                      {value ? "Yes" : "No"}
-                    </span>
-                  </div>
-                );
-              }
-
-              // For all other values
-              return (
-                <div key={key}>
-                  <strong style={labelStyle}>{formattedKey}:</strong>
-                  <span style={textStyle}>{value}</span>
-                </div>
-              );
-            })}
-
-          {/* Only include fields that exist in your data model */}
-          {/* If mcName exists */}
-          {novel.mcName && (
-            <div>
-              <strong style={labelStyle}>Main Character:</strong>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={editedValues.mcName || ""}
-                  onChange={(e) => handleFieldChange("mcName", e.target.value)}
-                  placeholder="Main Character Name"
-                  style={inputStyle}
-                />
-              ) : (
-                <span style={textStyle}>{novel.mcName}</span>
-              )}
-            </div>
-          )}
-
-          {/* If specialCharacteristicOfMc exists */}
-          {novel.specialCharacteristicOfMc && (
-            <div>
-              <strong style={labelStyle}>MC Trait:</strong>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={editedValues.specialCharacteristicOfMc || ""}
-                  onChange={(e) =>
-                    handleFieldChange(
-                      "specialCharacteristicOfMc",
-                      e.target.value
-                    )
-                  }
-                  placeholder="MC Trait"
-                  style={inputStyle}
-                />
-              ) : (
-                <span style={textStyle}>{novel.specialCharacteristicOfMc}</span>
-              )}
-            </div>
-          )}
-
-          {/* Keep any system fields read-only */}
-          {/* Added On date - read-only */}
-          {novel.addedOn && (
-            <div>
-              <strong style={labelStyle}>Added On:</strong>
-              <span style={textStyle}>{formatDate(novel.addedOn)}</span>
-            </div>
-          )}
-
-          {/* Last Updated date - read-only */}
-          {novel.lastUpdatedOn && (
-            <div>
-              <strong style={labelStyle}>Last Updated:</strong>
-              <span style={textStyle}>{formatDate(novel.lastUpdatedOn)}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Tags section - editable */}
-        {(novel.tags || isEditing) && (
-          <div style={{ marginBottom: "1.5rem" }}>
-            <strong
-              style={{
-                ...labelStyle,
-                display: "block",
-                marginBottom: "0.5rem",
+            <FieldRenderer
+              field={{
+                key: "genre",
+                type: "text",
+                label: "Genre",
+                placeholder: "Genre",
               }}
-            >
-              Tags:
-            </strong>
-            {isEditing ? (
-              <textarea
-                value={editedValues.tags || ""}
-                onChange={(e) => handleFieldChange("tags", e.target.value)}
-                placeholder="Enter tags separated by commas"
-                style={{
-                  ...inputStyle,
-                  minHeight: "80px",
-                  resize: "vertical",
-                }}
-              />
-            ) : (
-              novel.tags &&
-              novel.tags.trim() !== "" && (
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: "0.5rem",
-                  }}
-                >
-                  {novel.tags.split(",").map((tag, index) => (
-                    <span
-                      key={index}
-                      style={{
-                        ...textStyle,
-                        backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
-                        padding: "0.25rem 0.75rem",
-                        borderRadius: "20px",
-                        fontSize: "0.95rem",
-                      }}
-                    >
-                      {tag.trim()}
-                    </span>
-                  ))}
-                </div>
-              )
-            )}
-          </div>
-        )}
-
-        {/* Link to novel - editable */}
-        <div style={{ marginBottom: "1.5rem" }}>
-          <strong style={labelStyle}>Link:</strong>
-          {isEditing ? (
-            <input
-              type="url"
-              value={editedValues.link || ""}
-              onChange={(e) => handleFieldChange("link", e.target.value)}
-              placeholder="Novel URL"
-              style={inputStyle}
+              value={novel.genre}
+              isEditing={isEditing}
+              editedValues={editedValues}
+              handleFieldChange={handleFieldChange}
+              styles={styles}
+              darkMode={darkMode}
             />
-          ) : (
-            <a
-              href={novel.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                ...linkStyle,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.35rem",
-              }}
-            >
-              {novel.link}
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
-                <path d="M15 3h6v6"></path>
-                <path d="M10 14L21 3"></path>
-              </svg>
-            </a>
           )}
+
+          {/* Novel Details Fields - Ensure these are always displayed */}
+          {novelDetailsFields.map((field) => (
+            <FieldRenderer
+              key={field.key}
+              field={field}
+              value={field.value}
+              isEditing={isEditing}
+              editedValues={editedValues}
+              handleFieldChange={handleFieldChange}
+              styles={styles}
+              darkMode={darkMode}
+            />
+          ))}
+
+          {/* Novel Opinion Fields */}
+          {novelOpinionFields.map((field) => (
+            <FieldRenderer
+              key={field.key}
+              field={field}
+              value={field.value}
+              isEditing={isEditing}
+              editedValues={editedValues}
+              handleFieldChange={handleFieldChange}
+              styles={styles}
+              darkMode={darkMode}
+            />
+          ))}
         </div>
 
-        {/* Description - Add proper rendering */}
-        {novel.novelDetails?.description && (
-          <div style={{ marginBottom: "1.5rem" }}>
-            <strong
-              style={{
-                ...labelStyle,
-                display: "block",
-                marginBottom: "0.75rem",
-              }}
-            >
-              Description:
-            </strong>
-            <div
-              style={{
-                ...textStyle,
-                padding: "1.25rem",
-                backgroundColor: darkMode
-                  ? "rgba(255,255,255,0.03)"
-                  : "rgba(0,0,0,0.01)",
-                borderRadius: "10px",
-                borderLeft: darkMode
-                  ? "4px solid #61dafb"
-                  : "4px solid #0066cc",
-                lineHeight: "1.9",
-                whiteSpace: "pre-wrap", // Preserve line breaks
-              }}
-            >
-              {novel.novelDetails.description}
-            </div>
-          </div>
-        )}
+        <div
+          style={{
+            textAlign: "center",
+            marginTop: "1rem",
+            opacity: 0.6,
+            fontSize: "0.9rem",
+          }}
+        >
+          Last updated: {formatDate(novel.novelDetails?.lastUpdatedOn)}
+        </div>
       </div>
 
       {/* Comparison Modal */}
       {showComparisonModal && (
-        <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
             <h2
               style={{
                 fontSize: "1.5rem",
@@ -1043,17 +663,50 @@ function NovelDetails() {
 
               {/* Display changed fields */}
               {Object.keys(editedValues).map((key) => {
-                const originalValue = novel[key] || "";
-                const newValue = editedValues[key] || "";
+                let originalValue = "";
+                let newValue = editedValues[key] || "";
+
+                // Get original value based on field type
+                if (key === "description") {
+                  originalValue = novel.novelDetails?.description || "";
+                } else if (key.startsWith("novelDetails_")) {
+                  const originalKey = key.replace("novelDetails_", "");
+                  originalValue = novel?.novelDetails?.[originalKey] || "";
+                } else if (key.startsWith("novelOpinion_")) {
+                  const originalKey = key.replace("novelOpinion_", "");
+                  originalValue = novel?.novelOpinion?.[originalKey] || "";
+                } else {
+                  originalValue = novel?.[key] || "";
+                }
 
                 // Only show fields that have changed
                 if (originalValue === newValue) return null;
 
+                // Format boolean values for display
+                const formatValue = (value) => {
+                  if (typeof value === "boolean") {
+                    return value ? "Yes" : "No";
+                  }
+                  return value || "";
+                };
+
                 // Format the key name for display
-                const formattedKey = key
-                  .replace(/([A-Z])/g, " $1")
-                  .replace(/_/g, " ")
-                  .replace(/^\w/, (c) => c.toUpperCase());
+                let formattedKey = key;
+                if (key.startsWith("novelDetails_")) {
+                  formattedKey = key
+                    .replace("novelDetails_", "")
+                    .replace(/([A-Z])/g, " $1")
+                    .replace(/^\w/, (c) => c.toUpperCase());
+                } else if (key.startsWith("novelOpinion_")) {
+                  formattedKey = key
+                    .replace("novelOpinion_", "")
+                    .replace(/([A-Z])/g, " $1")
+                    .replace(/^\w/, (c) => c.toUpperCase());
+                } else {
+                  formattedKey = key
+                    .replace(/([A-Z])/g, " $1")
+                    .replace(/^\w/, (c) => c.toUpperCase());
+                }
 
                 return (
                   <React.Fragment key={key}>
@@ -1074,9 +727,14 @@ function NovelDetails() {
                           ? "rgba(255,255,255,0.03)"
                           : "rgba(0,0,0,0.02)",
                         borderRadius: "4px",
+                        maxHeight: "100px",
+                        overflowY: "auto",
+                        whiteSpace: "pre-wrap",
                       }}
                     >
-                      {originalValue || <em style={{ opacity: 0.5 }}>Empty</em>}
+                      {formatValue(originalValue) || (
+                        <em style={{ opacity: 0.5 }}>Empty</em>
+                      )}
                     </div>
                     <div
                       style={{
@@ -1086,9 +744,14 @@ function NovelDetails() {
                           : "rgba(0, 102, 204, 0.05)",
                         borderRadius: "4px",
                         fontWeight: "500",
+                        maxHeight: "100px",
+                        overflowY: "auto",
+                        whiteSpace: "pre-wrap",
                       }}
                     >
-                      {newValue || <em style={{ opacity: 0.5 }}>Empty</em>}
+                      {formatValue(newValue) || (
+                        <em style={{ opacity: 0.5 }}>Empty</em>
+                      )}
                     </div>
                   </React.Fragment>
                 );
@@ -1103,6 +766,7 @@ function NovelDetails() {
               }}
             >
               <button
+                type="button"
                 onClick={() => setShowComparisonModal(false)}
                 style={{
                   padding: "0.5rem 1rem",
@@ -1116,7 +780,8 @@ function NovelDetails() {
                 Cancel
               </button>
               <button
-                onClick={saveChanges}
+                type="button"
+                onClick={handleSaveChanges}
                 disabled={isSaving}
                 style={{
                   padding: "0.5rem 1rem",
@@ -1124,7 +789,7 @@ function NovelDetails() {
                   color: "white",
                   border: "none",
                   borderRadius: "4px",
-                  cursor: "pointer",
+                  cursor: isSaving ? "not-allowed" : "pointer",
                   opacity: isSaving ? 0.7 : 1,
                 }}
               >
@@ -1135,25 +800,41 @@ function NovelDetails() {
         </div>
       )}
 
-      {/* Footer */}
-      <div
-        style={{
-          textAlign: "center",
-          marginTop: "1rem",
-          opacity: 0.6,
-          fontSize: "0.9rem",
-        }}
-      >
-        Last updated: {formatDate(new Date())}
-      </div>
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
+            <h2
+              style={{
+                fontSize: "1.5rem",
+                marginBottom: "1.5rem",
+                color: darkMode ? "#61dafb" : "#0066cc",
+              }}
+            >
+              Changes Saved Successfully!
+            </h2>
+            <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+              Your changes have been saved.
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowSuccessModal(false)}
+              style={{
+                padding: "0.5rem 1rem",
+                backgroundColor: darkMode ? "#61dafb" : "#0066cc",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-// Add this to your CSS file
-// @keyframes spin {
-//   0% { transform: rotate(0deg); }
-//   100% { transform: rotate(360deg); }
-// }
 
 export default NovelDetails;
