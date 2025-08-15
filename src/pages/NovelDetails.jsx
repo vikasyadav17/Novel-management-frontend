@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; // Add useNavigate import
 import { useState, useEffect, useContext } from "react";
 import React from "react";
 import { novelApi } from "../services/novelApi";
@@ -14,6 +14,7 @@ import defaultCoverImage from "../assets/images/Sword_god.jpg";
 
 function NovelDetails() {
   const { id } = useParams();
+  const navigate = useNavigate(); // Add this to use for navigation
   const { darkMode } = useContext(ThemeContext);
   const [novel, setNovel] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -172,62 +173,177 @@ function NovelDetails() {
   return (
     <div
       className={`novel-details ${darkMode ? "dark-mode" : ""}`}
-      style={styles.container}
+      style={{
+        ...styles.container,
+        background: darkMode
+          ? "linear-gradient(145deg, #1a1a1a 0%, #121212 100%)"
+          : "linear-gradient(145deg, #f9f9f9 0%, #ffffff 100%)",
+      }}
     >
-      {/* Edit Buttons */}
-      {!isEditing ? (
-        <button onClick={startEditing} style={styles.editButton}>
-          Edit
-        </button>
-      ) : (
-        <div
-          style={{
-            position: "absolute",
-            top: "1.25rem",
-            left: "1.25rem",
-            display: "flex",
-            gap: "0.5rem",
-          }}
-        >
-          <button
-            onClick={cancelEditing}
-            style={{
-              ...styles.editButton,
-              backgroundColor: darkMode ? "#444" : "#ccc",
-            }}
-          >
-            Cancel
-          </button>
-          <button onClick={showChanges} style={styles.editButton}>
-            Review Changes
-          </button>
-        </div>
-      )}
-
-      {/* Bookmark */}
-      <div
-        onClick={toggleFavorite}
+      {/* Back Button - Enhanced */}
+      <button
+        onClick={() => navigate("/library")}
         style={{
           position: "absolute",
           top: "1.25rem",
-          right: "1.25rem",
+          left: "1.25rem",
+          display: "flex",
+          alignItems: "center",
+          gap: "0.5rem",
+          backgroundColor: darkMode
+            ? "rgba(51, 51, 51, 0.8)"
+            : "rgba(240, 240, 240, 0.8)",
+          color: darkMode ? "#f7f7fb" : "#333",
+          border: "none",
+          padding: "0.5rem 1rem",
+          borderRadius: "8px", // More rounded
           cursor: "pointer",
+          fontWeight: "500",
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+          zIndex: 5,
+          transition: "all 0.2s ease",
+          backdropFilter: "blur(5px)",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "translateY(-2px)";
+          e.currentTarget.style.boxShadow = "0 6px 8px rgba(0, 0, 0, 0.15)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
         }}
       >
         <svg
-          width="32"
-          height="40"
-          viewBox="0 0 32 40"
-          fill={isFavorite ? "#000000" : "none"}
-          stroke={darkMode ? "#ffffff" : "#333333"}
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          <path d="M2 2V38L16 30L30 38V2H2Z" />
-          <path
-            d="M16 7L18.5 12.5L24.5 13L20 17L21.5 23L16 20L10.5 23L12 17L7.5 13L13.5 12.5L16 7Z"
-            fill={isFavorite ? "#ffffff" : "none"}
-          />
+          <path d="M19 12H5" />
+          <polyline points="12 19 5 12 12 5" />
         </svg>
+        Back
+      </button>
+
+      {/* Edit/Cancel/Review Buttons - Updated to use full width since bookmark is removed */}
+      <div
+        style={{
+          position: "absolute",
+          top: "1.25rem",
+          left: "7rem", // Position after the Back button
+          right: "1.25rem", // More space on right since bookmark is removed
+          display: "flex",
+          height: "40px",
+        }}
+      >
+        {!isEditing ? (
+          // Split button when not in edit mode
+          <>
+            <button
+              onClick={cancelEditing}
+              style={{
+                flex: "0 0 100px",
+                backgroundColor: darkMode
+                  ? "rgba(68, 68, 68, 0.9)"
+                  : "rgba(221, 221, 221, 0.9)",
+                color: darkMode ? "#f7f7fb" : "#555",
+                border: "none",
+                borderRadius: "8px 0 0 8px", // More rounded on left side
+                fontWeight: "500",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                backdropFilter: "blur(5px)",
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={startEditing}
+              style={{
+                flex: 1,
+                background: "linear-gradient(90deg, #007bff, #0062cc)",
+                color: "white",
+                border: "none",
+                borderRadius: "0 8px 8px 0", // More rounded on right side
+                fontWeight: "600",
+                cursor: "pointer",
+                boxShadow: "0 4px 6px rgba(0, 123, 255, 0.2)",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background =
+                  "linear-gradient(90deg, #0062cc, #004799)";
+                e.currentTarget.style.boxShadow =
+                  "0 6px 8px rgba(0, 123, 255, 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background =
+                  "linear-gradient(90deg, #007bff, #0062cc)";
+                e.currentTarget.style.boxShadow =
+                  "0 4px 6px rgba(0, 123, 255, 0.2)";
+              }}
+            >
+              Edit
+            </button>
+          </>
+        ) : (
+          // Same buttons when in edit mode, but with Review Changes instead of Edit
+          <>
+            <button
+              onClick={cancelEditing}
+              style={{
+                flex: "0 0 100px",
+                backgroundColor: darkMode
+                  ? "rgba(68, 68, 68, 0.9)"
+                  : "rgba(204, 204, 204, 0.9)",
+                color: darkMode ? "#f7f7fb" : "#333",
+                border: "none",
+                borderRadius: "8px 0 0 8px", // More rounded on left side
+                fontWeight: "500",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                backdropFilter: "blur(5px)",
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={showChanges}
+              style={{
+                flex: 1,
+                background: "linear-gradient(90deg, #007bff, #0062cc)",
+                color: "white",
+                border: "none",
+                borderRadius: "0 8px 8px 0", // More rounded on right side
+                fontWeight: "600",
+                cursor: "pointer",
+                boxShadow: "0 4px 6px rgba(0, 123, 255, 0.2)",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background =
+                  "linear-gradient(90deg, #0062cc, #004799)";
+                e.currentTarget.style.boxShadow =
+                  "0 6px 8px rgba(0, 123, 255, 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background =
+                  "linear-gradient(90deg, #007bff, #0062cc)";
+                e.currentTarget.style.boxShadow =
+                  "0 4px 6px rgba(0, 123, 255, 0.2)";
+              }}
+            >
+              Review Changes
+            </button>
+          </>
+        )}
       </div>
+
+      {/* Removed the bookmark/star icon section completely */}
 
       <NovelHeader
         novel={novel}
@@ -237,60 +353,89 @@ function NovelDetails() {
         styles={styles}
       />
 
-      {/* Link to novel - moved here between title and original name */}
+      {/* Link to novel - Enhanced with better styling */}
       <div
         style={{
-          marginBottom: "1rem",
+          marginBottom: "1.5rem",
           padding: "0 2rem",
           textAlign: "center",
         }}
       >
         {isEditing ? (
           <>
-            <strong style={styles.label}>Link:</strong>
+            <strong style={{ ...styles.label, fontSize: "1.1rem" }}>
+              Link:
+            </strong>
             <input
               type="url"
               value={editedValues.link || ""}
               onChange={(e) => handleFieldChange("link", e.target.value)}
               placeholder="Novel URL"
-              style={{ ...styles.input, marginTop: "0.5rem" }}
+              style={{
+                ...styles.input,
+                marginTop: "0.5rem",
+                borderRadius: "8px",
+                padding: "10px 16px",
+                fontSize: "1rem",
+                transition: "all 0.2s ease",
+              }}
             />
           </>
         ) : (
-          <a
-            href={novel.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              color: darkMode ? "#61dafb" : "#0066cc",
-              textDecoration: "none",
-              fontWeight: "600",
-              fontSize: "1.2rem",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.3rem",
-            }}
-          >
-            {novel.link}
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          novel.link && (
+            <a
+              href={novel.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: darkMode ? "#61dafb" : "#0066cc",
+                textDecoration: "none",
+                fontWeight: "600",
+                fontSize: "1.2rem",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                padding: "8px 16px",
+                borderRadius: "8px",
+                transition: "all 0.2s ease",
+                background: darkMode
+                  ? "rgba(97, 218, 251, 0.1)"
+                  : "rgba(0, 102, 204, 0.05)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = darkMode
+                  ? "rgba(97, 218, 251, 0.2)"
+                  : "rgba(0, 102, 204, 0.1)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = darkMode
+                  ? "rgba(97, 218, 251, 0.1)"
+                  : "rgba(0, 102, 204, 0.05)";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
             >
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-              <polyline points="15,3 21,3 21,9"></polyline>
-              <line x1="10" y1="14" x2="21" y2="3"></line>
-            </svg>
-          </a>
+              {novel.link}
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15,3 21,3 21,9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+            </a>
+          )
         )}
       </div>
 
-      {/* Novel Cover Image and Description - side by side */}
+      {/* Novel Cover Image and Description - Enhanced with better styling */}
       <div
         style={{
           marginBottom: "2rem",
@@ -298,10 +443,11 @@ function NovelDetails() {
           display: "flex",
           gap: "2rem",
           alignItems: "flex-start",
+          flexWrap: "wrap", // Make responsive
         }}
       >
-        {/* Left side - Image only (link moved above) */}
-        <div style={{ flexShrink: 0 }}>
+        {/* Left side - Image with enhanced styling */}
+        <div style={{ flexShrink: 0, margin: "0 auto" }}>
           <img
             src={novel.novelDetails?.novelCover || defaultCoverImage}
             alt={novel.name}
@@ -309,8 +455,17 @@ function NovelDetails() {
               maxWidth: "250px",
               maxHeight: "350px",
               borderRadius: "15px",
-              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+              boxShadow: darkMode
+                ? "0 12px 32px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3)"
+                : "0 12px 32px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1)",
               objectFit: "cover",
+              transition: "transform 0.3s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "scale(1.03)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "scale(1)";
             }}
             onError={(e) => {
               e.target.src = defaultCoverImage;
