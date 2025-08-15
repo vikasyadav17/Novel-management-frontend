@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import swordGodImage from "../assets/images/sword_god.jpg";
 
 const NovelHeader = ({
   novel,
@@ -28,7 +27,7 @@ const NovelHeader = ({
           borderRadius: "20px",
         }}
       >
-        <img
+        {/* <img
           src={novel.imageUrl || swordGodImage}
           alt={`Cover of ${novel.name}`}
           style={{
@@ -41,7 +40,7 @@ const NovelHeader = ({
             transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
             filter: "contrast(1.1) saturate(1.1)",
           }}
-        />
+        /> */}
       </div>
 
       {/* Original Name */}

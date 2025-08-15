@@ -52,7 +52,7 @@ function Search({ darkMode }) {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search Light Novel By Title"
+          placeholder="Search Novels from library"
           style={{
             width: "600px",
             padding: "16px 40px",
