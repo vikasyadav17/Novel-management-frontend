@@ -251,10 +251,46 @@ function NovelForm({ onAddNovel, darkMode }) {
       marginTop: "0.5rem",
       fontSize: "0.9rem",
     },
+    formTitle: {
+      textAlign: "center",
+      fontSize: "2rem",
+      fontWeight: "700",
+      marginBottom: "1.5rem",
+      color: darkMode ? "#61dafb" : "#0066cc",
+      position: "relative",
+      padding: "0 0 1rem 0",
+    },
+    formTitleUnderline: {
+      position: "absolute",
+      bottom: 0,
+      left: "50%",
+      transform: "translateX(-50%)",
+      width: "80px",
+      height: "3px",
+      background: darkMode
+        ? "linear-gradient(to right, #61dafb, #4fa6d5)"
+        : "linear-gradient(to right, #0066cc, #4285f4)",
+      borderRadius: "4px",
+    },
+    formSubtitle: {
+      textAlign: "center",
+      fontSize: "1rem",
+      color: darkMode ? "#aaa" : "#666",
+      marginBottom: "2rem",
+      fontWeight: "normal",
+    },
   };
 
   return (
     <div style={styles.formContainer}>
+      <div style={styles.formTitle}>
+        Add New Novel
+        <div style={styles.formTitleUnderline}></div>
+      </div>
+      <p style={styles.formSubtitle}>
+        Complete the form below to add a novel to your collection
+      </p>
+
       <form onSubmit={handleSubmit} className="novel-form">
         {/* Basic Novel Information */}
         <div style={styles.formSection}>
