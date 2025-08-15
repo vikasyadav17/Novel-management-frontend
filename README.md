@@ -113,13 +113,13 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ### Screenshot Gallery
 
-<div align="center">
+<!-- <div align="center">
   <img src="src/assets/screenshots/novel-details.png" alt="Novel Details Page" width="600px" />
   <p><em>Detailed view of a novel showing all information</em></p>
-  
+
   <img src="src/assets/screenshots/dark-mode.png" alt="Dark Mode Interface" width="600px" />
   <p><em>The application in dark mode</em></p>
-  
+
   <img src="src/assets/screenshots/add-novel.png" alt="Add Novel Form" width="600px" />
   <p><em>Form to add a new novel to your library</em></p>
-</div>
+</div> -->
