@@ -431,33 +431,28 @@ function NovelDetails() {
             top: "50%",
             transform: "translateY(-50%)",
             width: "250px",
+            height: "250px", // Match Library component's fixed height
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
+            backgroundColor: darkMode ? "#272727" : "#f5f5f5", // Move background to container
+            borderRadius: "15px",
+            boxShadow: darkMode
+              ? "0 12px 32px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3)"
+              : "0 12px 32px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1)",
+            overflow: "hidden", // Ensure content stays within rounded corners
           }}
         >
           <img
             src={getCoverImage(novel)}
             alt={novel.name}
             style={{
-              width: "100%",
-              maxWidth: "250px",
-              height: "auto",
-              maxHeight: "350px",
-              borderRadius: "15px",
-              boxShadow: darkMode
-                ? "0 12px 32px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3)"
-                : "0 12px 32px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1)",
-              objectFit: "cover",
-              transition: "transform 0.3s ease",
+              width: "100%", // Exactly like Library
+              height: "100%", // Exactly like Library
+              objectFit: "contain", // Exactly like Library
+              padding: "5px", // Exactly like Library
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "scale(1.03)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "scale(1)";
-            }}
-            onError={handleImageError} // Use the shared error handler
+            onError={handleImageError}
           />
         </div>
 
