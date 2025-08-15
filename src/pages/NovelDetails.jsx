@@ -14,12 +14,11 @@ import { getCoverImage, handleImageError } from "../utils/coverUtils";
 
 function NovelDetails() {
   const { id } = useParams();
-  const navigate = useNavigate(); // Add this to use for navigation
+  const navigate = useNavigate();
   const { darkMode } = useContext(ThemeContext);
   const [novel, setNovel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const styles = createStyles(darkMode);
@@ -41,11 +40,6 @@ function NovelDetails() {
       try {
         const response = await novelApi.getNovelById(id);
         setNovel(response.data);
-
-        const favorites = JSON.parse(
-          localStorage.getItem("favoriteNovels") || "[]"
-        );
-        setIsFavorite(favorites.includes(response.data._id));
       } catch (err) {
         setError("Failed to load novel details.");
       } finally {
@@ -55,32 +49,18 @@ function NovelDetails() {
     fetchNovel();
   }, [id]);
 
-  const toggleFavorite = () => {
-    if (!novel?._id) return;
-    const newFavoriteStatus = !isFavorite;
-    setIsFavorite(newFavoriteStatus);
-
-    const favorites = JSON.parse(
-      localStorage.getItem("favoriteNovels") || "[]"
-    );
-    if (newFavoriteStatus) {
-      if (!favorites.includes(novel._id)) {
-        localStorage.setItem(
-          "favoriteNovels",
-          JSON.stringify([...favorites, novel._id])
-        );
-      }
-    } else {
-      localStorage.setItem(
-        "favoriteNovels",
-        JSON.stringify(favorites.filter((favId) => favId !== novel._id))
-      );
-    }
-  };
-
   const formatDate = (dateString) => {
     if (!dateString) return "";
     return moment(dateString).format("DD MMM YYYY");
+  };
+
+  // Simple save function without extra functionality
+  const handleSaveChanges = async () => {
+    const success = await saveChanges();
+    if (success) {
+      setShowComparisonModal(false);
+      setShowSuccessModal(true);
+    }
   };
 
   if (loading) {
@@ -102,53 +82,49 @@ function NovelDetails() {
     isEditing
   );
 
-  // Ensure mcName and totalChapters are always displayed
-  const ensureMcNameField = novelDetailsFields.some(
-    (field) => field.key === "novelDetails_mcName"
-  );
-
-  const ensureTotalChaptersField = novelDetailsFields.some(
-    (field) => field.key === "novelDetails_totalChapters"
-  );
-
-  // If mcName is not in the fields, add it manually
-  if (!ensureMcNameField) {
-    // Insert mcName at index 0 to ensure consistent position
-    novelDetailsFields.splice(0, 0, {
-      key: "novelDetails_mcName",
-      type: "text",
-      label: "Main Character Name",
-      value: novel?.novelDetails?.mcName || "",
-      placeholder: "Main Character Name",
-    });
-  }
-
-  // If totalChapters is not in the fields, add it manually
-  if (!ensureTotalChaptersField) {
-    novelDetailsFields.push({
-      key: "novelDetails_totalChapters",
-      type: "number",
-      label: "Total Chapters",
-      value: novel?.novelDetails?.totalChapters || "",
-      placeholder: "Total Chapters",
-    });
-  }
-
-  // Sort the fields to ensure consistent order between edit/view modes
-  const fieldOrder = [
+  // Essential fields to always display, even if empty
+  const essentialFields = [
     "novelDetails_mcName",
     "novelDetails_specialCharacteristicOfMc",
     "novelDetails_status",
     "novelDetails_totalChapters",
-    // Add other fields in the order you prefer
   ];
 
-  // Sort the fields based on the defined order
+  // Ensure essential fields are always included
+  essentialFields.forEach((fieldKey) => {
+    const exists = novelDetailsFields.some((field) => field.key === fieldKey);
+
+    if (!exists) {
+      // Extract the actual field name from the key
+      const fieldName = fieldKey.replace("novelDetails_", "");
+
+      // Create default field configuration
+      const defaultValue = novel?.novelDetails?.[fieldName] || "";
+
+      // Generate display label from field name (convert camelCase to Title Case)
+      const label = fieldName
+        .replace(/([A-Z])/g, " $1")
+        .replace(/^./, (str) => str.toUpperCase());
+
+      // Add the field to novelDetailsFields
+      novelDetailsFields.push({
+        key: fieldKey,
+        type: fieldName === "totalChapters" ? "number" : "text",
+        label,
+        value: defaultValue,
+        placeholder: label,
+      });
+    }
+  });
+
+  // Sort the fields to ensure consistent display order
+  const fieldOrder = essentialFields;
+
   novelDetailsFields.sort((a, b) => {
     const indexA = fieldOrder.indexOf(a.key);
     const indexB = fieldOrder.indexOf(b.key);
 
-    // If both fields are in our order list, sort by that order
+    // If both fields are in the specified order, sort accordingly
     if (indexA !== -1 && indexB !== -1) {
       return indexA - indexB;
     }
@@ -156,19 +132,9 @@ function NovelDetails() {
     if (indexA !== -1) return -1;
     // If only b is in the list, it comes first
     if (indexB !== -1) return 1;
-    // If neither is in the list, maintain original order
+    // For other fields, keep original order
     return 0;
   });
-
-  // Replace the enhanced save function with a simpler version
-  const handleEnhancedSaveChanges = async () => {
-    // Directly call the normal save function without auto-filling chapters frequency
-    const success = await saveChanges();
-    if (success) {
-      setShowComparisonModal(false);
-      setShowSuccessModal(true);
-    }
-  };
 
   return (
     <div
@@ -322,8 +288,6 @@ function NovelDetails() {
           </>
         )}
       </div>
-
-      {/* Removed the bookmark/star icon section completely */}
 
       <NovelHeader
         novel={novel}
@@ -611,7 +575,7 @@ function NovelDetails() {
             />
           )}
 
-          {/* Novel Details Fields */}
+          {/* Novel Details Fields - Ensure these are always displayed */}
           {novelDetailsFields.map((field) => (
             <FieldRenderer
               key={field.key}
@@ -817,7 +781,7 @@ function NovelDetails() {
               </button>
               <button
                 type="button"
-                onClick={handleEnhancedSaveChanges}
+                onClick={handleSaveChanges}
                 disabled={isSaving}
                 style={{
                   padding: "0.5rem 1rem",

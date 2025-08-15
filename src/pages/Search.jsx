@@ -13,35 +13,27 @@ function Search({ darkMode }) {
 
   useEffect(() => {
     loadNovels();
-  }, [search, genre]); // This is already correct, reload when search or genre changes
+  }, [search, genre]);
 
   useEffect(() => {
     document.title = "Novel Search";
   }, []);
 
-  // Update the genre filter to show exact matching behavior
   const loadNovels = async () => {
     setLoading(true);
     try {
-      // Fetch all novels first
+      // Fetch all novels with search parameter
       const response = await novelApi.getAllNovels(search);
-      console.log("Response data before filtering:", response.data);
 
       // Apply exact genre matching client-side if genre is selected
       let filteredNovels = response.data;
       if (genre) {
-        // Filter for exact genre match only
-        filteredNovels = response.data.filter(
-          (novel) => novel.genre === genre // This ensures exact match only
-        );
-        console.log("After exact genre filtering:", filteredNovels);
+        filteredNovels = response.data.filter((novel) => novel.genre === genre);
       }
 
-      // Set the filtered novels for display
       setNovels(filteredNovels);
 
-      // Always collect all available genres from the original response
-      // This ensures we don't lose genre options when filtering
+      // Only update genres list when not filtering
       if (!genre) {
         const allGenres = Array.from(
           new Set(response.data.map((n) => n.genre).filter(Boolean))
@@ -55,12 +47,8 @@ function Search({ darkMode }) {
     }
   };
 
-  // Add a function to handle genre changes
-  const handleGenreChange = (e) => {
-    const selectedGenre = e.target.value;
-    setGenre(selectedGenre);
-    console.log("Genre changed to:", selectedGenre); // Debugging
-  };
+  // Simplified handler without debug logging
+  const handleGenreChange = (e) => setGenre(e.target.value);
 
   return (
     <div

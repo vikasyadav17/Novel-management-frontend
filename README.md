@@ -65,6 +65,27 @@ Built with React (Vite) for the frontend and backed by a RESTful API.
 This frontend expects a backend running at `http://localhost:8080/novels`.  
 Make sure your backend API is running and accessible.
 
+## Environment Setup
+
+The application uses environment variables for configuration. Follow these steps to set it up:
+
+1. Copy the `.env.example` file to `.env`:
+
+   ```
+   cp .env.example .env
+   ```
+
+2. Edit the `.env` file to match your environment:
+
+   ```
+   VITE_API_BASE_URL=http://localhost:8080/novels
+   ```
+
+3. Restart the development server if it's already running:
+   ```
+   npm run dev
+   ```
+
 ## Project Structure
 
 - `src/components/` – React components (NovelCard, NovelForm, NovelHeader, etc.)

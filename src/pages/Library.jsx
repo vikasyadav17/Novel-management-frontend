@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { novelApi } from "../services/novelApi";
 import logger from "../utils/logger";
 import { useNavigate } from "react-router-dom";
@@ -10,54 +10,33 @@ import { getCoverImage, handleImageError } from "../utils/coverUtils";
 function Library({ darkMode }) {
   const navigate = useNavigate();
   const [novels, setNovels] = useState([]);
-  const [filteredNovels, setFilteredNovels] = useState([]); // Initialize as empty array
+  const [filteredNovels, setFilteredNovels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [editId, setEditId] = useState(null);
-  const [editData, setEditData] = useState({});
-  const [editingCell, setEditingCell] = useState(null); // { rowId, field }
-  const [tooltip, setTooltip] = useState({ show: false, text: "", x: 0, y: 0 });
-  const [modal, setModal] = useState({
-    show: false,
-    field: "",
-    oldValue: "",
-    newValue: "",
-    rowId: null,
-  });
-  const [currentPage, setCurrentPage] = useState(1); // Current page for pagination
-  const novelsPerPage = 20; // Changed from 10 to 20 novels per page
-  const tableRef = useRef();
+  const [successModal, setSuccessModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const novelsPerPage = 20;
 
-  // Error boundary state
-  const [renderError, setRenderError] = useState(null);
-  const [successModal, setSuccessModal] = useState(false); // Add success modal state
-
-  // New filter states
+  // Filter states
   const [genreFilter, setGenreFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [genres, setGenres] = useState([]);
   const [statuses, setStatuses] = useState([]);
 
   useEffect(() => {
-    document.title = "Novel Updates";
-  }, []);
-
-  useEffect(() => {
+    document.title = "Novel Library";
     loadNovels();
   }, []);
 
-  // FIXED: Move applyFilters inside this effect to prevent infinite loops
   useEffect(() => {
-    // Only apply filters if novels array has data
+    // Apply filters when novels, genreFilter or statusFilter changes
     if (novels.length > 0) {
       let result = [...novels];
 
-      // Apply genre filter if selected
       if (genreFilter) {
         result = result.filter((novel) => novel.genre === genreFilter);
       }
 
-      // Apply status filter if selected
       if (statusFilter) {
         result = result.filter(
           (novel) => novel.novelDetails?.status === statusFilter
@@ -66,19 +45,18 @@ function Library({ darkMode }) {
 
       setFilteredNovels(result);
     }
-  }, [novels, genreFilter, statusFilter]); // Keep these dependencies
+  }, [novels, genreFilter, statusFilter]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [genreFilter, statusFilter]);
 
   const loadNovels = async () => {
-    logger.info("Loading novels...");
     try {
       const response = await novelApi.getAllNovels();
-      logger.info("Novels loaded successfully:", response.data);
-
-      // Set novels data
       setNovels(response.data);
-      // REMOVED: Don't set filteredNovels here, let the effect handle it
 
-      // Extract unique genres and statuses for filters
       const uniqueGenres = Array.from(
         new Set(response.data.map((novel) => novel.genre).filter(Boolean))
       ).sort();
@@ -94,189 +72,27 @@ function Library({ darkMode }) {
       setGenres(uniqueGenres);
       setStatuses(uniqueStatuses);
     } catch (err) {
-      logger.error("Failed to load novels:", err.message);
       setError("Failed to load novels");
     } finally {
       setLoading(false);
     }
   };
 
-  // Clear filters function (keep this as a separate function)
   const clearFilters = () => {
     setGenreFilter("");
     setStatusFilter("");
-    // REMOVED: Don't call setCurrentPage here
-  };
-
-  // ADDED: This effect handles resetting the page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [genreFilter, statusFilter]);
-
-  const fetchNovelByName = async (name) => {
-    logger.info("Fetching novel by name:", name);
-    try {
-      const response = await novelApi.getNovelByName(name); // Call the API method
-      logger.info("Novel fetched successfully:", response.data);
-      setNovels([response.data]); // Update the novels state with the fetched novel
-    } catch (err) {
-      logger.error("Failed to fetch novel by name:", err.message);
-      setError("Failed to fetch novel by name.");
-    }
-  };
-
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setEditData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleCellDoubleClick = (rowId, field) => {
-    setEditId(rowId);
-    setEditingCell({ rowId, field });
-    const novel = novels.find((n) => (n.novelDetails?.id || n.id) === rowId);
-    setEditData({
-      name: novel.name,
-      originalName: novel.originalName || "",
-      genre: novel.genre,
-      description: novel.novelDetails?.description || "", // Ensure description is fetched correctly
-      link: novel.link || "",
-    });
-  };
-
-  const handleCellBlur = (id) => {
-    if (!editingCell) return;
-    const field = editingCell.field;
-    const novel = novels.find((n) => (n.novelDetails?.id || n.id) === id);
-    let oldValue = "";
-    if (field === "name") oldValue = novel.name;
-    else if (field === "link") oldValue = novel.link;
-    else if (field === "genre") oldValue = novel.genre;
-    else if (field === "description")
-      oldValue = novel.novelDetails?.description || "";
-    const newValue = editData[field];
-
-    // Prevent modal and request if the new value is empty
-    if (!newValue || String(newValue).trim() === "") {
-      logger.warn(`Field "${field}" cannot be empty. Changes discarded.`);
-      setEditingCell(null);
-      setEditId(null);
-      setEditData({});
-      return;
-    }
-
-    // Only show modal if value changed
-    if (String(oldValue) !== String(newValue)) {
-      setModal({
-        show: true,
-        field,
-        oldValue,
-        newValue,
-        rowId: id,
-      });
-    } else {
-      setEditingCell(null);
-      setEditId(null);
-      setEditData({});
-    }
-  };
-
-  const handleCellKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.target.blur();
-    }
-  };
-
-  const handleModalConfirm = async () => {
-    await handleEditSave(modal.rowId);
-    setModal({
-      show: false,
-      field: "",
-      oldValue: "",
-      newValue: "",
-      rowId: null,
-    });
-    setEditingCell(null);
-    setEditId(null);
-  };
-
-  const handleModalCancel = () => {
-    setModal({
-      show: false,
-      field: "",
-      oldValue: "",
-      newValue: "",
-      rowId: null,
-    });
-    setEditingCell(null);
-    setEditId(null);
-    setEditData({});
-  };
-
-  const handleEditSave = async (id) => {
-    logger.info("Saving edits for novel ID:", id, "with data:", editData);
-    try {
-      const novel = novels.find((n) => (n.novelDetails?.id || n.id) === id);
-
-      const payload = {
-        name: editData.name,
-        originalName: editData.originalName,
-        genre: editData.genre,
-        link: editData.link,
-        novelDetails: {
-          ...novel.novelDetails, // Preserve existing novelDetails properties
-          description: editData.description, // Update description
-        },
-      };
-
-      logger.info("Request payload:", payload);
-      await fetch(`http://localhost:8080/novels/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-      logger.info("Edit saved successfully for novel ID:", id);
-      setEditData({});
-      setSuccessModal(true); // Show success modal
-      loadNovels();
-    } catch (err) {
-      logger.error("Failed to save edits for novel ID:", id, err.message);
-      setError(
-        "Failed to update novel: " + (err?.message || JSON.stringify(err))
-      );
-    }
-  };
-
-  const handleTitleMouseEnter = (e, originalName) => {
-    if (!originalName) return;
-    const rect = e.target.getBoundingClientRect();
-    setTooltip({
-      show: true,
-      text: originalName,
-      x: rect.left + window.scrollX,
-      y: rect.top + window.scrollY - 8, // show above the cell
-    });
-  };
-
-  const handleTitleMouseLeave = () => {
-    setTooltip({ show: false, text: "", x: 0, y: 0 });
   };
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
 
-  // Modify pagination to use filteredNovels instead of novels
+  // Pagination
   const paginatedNovels = filteredNovels.slice(
     (currentPage - 1) * novelsPerPage,
     currentPage * novelsPerPage
   );
 
-  // Update this function to include novel cover image URL
   const exportToExcel = () => {
     // Create headers for Excel
     const headers = [
@@ -357,7 +173,7 @@ function Library({ darkMode }) {
     logger.info("Exported novels to Excel format (.xlsx)");
   };
 
-  // Replace the content rendering section (where the table is)
+  // Render content
   let content;
   try {
     if (loading) {
@@ -1190,7 +1006,6 @@ function Library({ darkMode }) {
       );
     }
   } catch (err) {
-    setRenderError(err);
     content = (
       <div style={{ color: "red" }}>
         Unexpected error occurred: {err?.message || String(err)}
