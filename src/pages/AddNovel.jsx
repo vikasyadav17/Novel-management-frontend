@@ -28,10 +28,55 @@ function AddNovel() {
     typeof handleAddNovel
   );
 
+  // Create styles based on dark mode
+  const styles = {
+    container: {
+      maxWidth: "1200px",
+      margin: "0 auto",
+      padding: "2rem",
+      color: darkMode ? "#ffffff" : "#333333",
+      backgroundColor: darkMode ? "#1a1a1a" : "#f8f9fa",
+      minHeight: "100vh",
+      borderRadius: "8px",
+      boxShadow: darkMode
+        ? "0 4px 20px rgba(0, 0, 0, 0.5)"
+        : "0 4px 20px rgba(0, 0, 0, 0.1)",
+    },
+    header: {
+      textAlign: "center",
+      marginBottom: "2rem",
+      borderBottom: `2px solid ${darkMode ? "#61dafb" : "#0066cc"}`,
+      paddingBottom: "1rem",
+      color: darkMode ? "#61dafb" : "#0066cc",
+      fontSize: "2.2rem",
+      fontWeight: "600",
+    },
+    subheader: {
+      textAlign: "center",
+      marginBottom: "2.5rem",
+      opacity: 0.8,
+      fontSize: "1.1rem",
+    },
+    formContainer: {
+      backgroundColor: darkMode ? "#2a2a2a" : "#ffffff",
+      padding: "2rem",
+      borderRadius: "8px",
+      boxShadow: darkMode
+        ? "0 4px 12px rgba(0, 0, 0, 0.3)"
+        : "0 4px 12px rgba(0, 0, 0, 0.1)",
+    },
+  };
+
   return (
-    <div>
-      <h1>Add New Novel</h1>
-      <NovelForm onAddNovel={handleAddNovel} darkMode={darkMode} />
+    <div style={styles.container} className={darkMode ? "dark-mode" : ""}>
+      <h1 style={styles.header}>Add New Novel</h1>
+      <p style={styles.subheader}>
+        Fill out the form below to add a new novel to your collection
+      </p>
+
+      <div style={styles.formContainer}>
+        <NovelForm onAddNovel={handleAddNovel} darkMode={darkMode} />
+      </div>
     </div>
   );
 }
