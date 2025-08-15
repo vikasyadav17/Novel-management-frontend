@@ -546,6 +546,33 @@ function Library({ darkMode }) {
                       </div>
                     )}
 
+                    {/* Main Character Name */}
+                    {novel.novelDetails?.mcName && (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            opacity: 0.7,
+                            fontSize: "0.9rem",
+                            flexShrink: 0,
+                            width: "70px",
+                          }}
+                        >
+                          MC:
+                        </span>
+                        <span
+                          style={{ fontSize: "0.95rem", fontWeight: "500" }}
+                        >
+                          {novel.novelDetails.mcName}
+                        </span>
+                      </div>
+                    )}
+
                     {/* Updated Chapters display with read/total format or N/A */}
                     <div
                       style={{
@@ -584,44 +611,6 @@ function Library({ darkMode }) {
                             }`}
                       </span>
                     </div>
-
-                    {/* Worth to Continue field */}
-                    {novel.novelOpinion?.worthToContinue && (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            opacity: 0.7,
-                            fontSize: "0.9rem",
-                            flexShrink: 0,
-                            width: "70px",
-                          }}
-                        >
-                          Worth:
-                        </span>
-                        <span
-                          style={{
-                            fontSize: "0.95rem",
-                            fontWeight: "600",
-                            backgroundColor:
-                              novel.novelOpinion.worthToContinue === "Yes" ||
-                              novel.novelOpinion.worthToContinue === "yes"
-                                ? "rgba(76, 175, 80, 0.1)" // Green for "Yes"
-                                : novel.novelOpinion.worthToContinue === "No" ||
-                                  novel.novelOpinion.worthToContinue === "no"
-                                ? "rgba(244, 67, 54, 0.1)" // Red for "No"
-                                : "rgba(255, 152, 0, 0.1)", // Orange for other values (Maybe, etc)
-                          }}
-                        >
-                          {novel.novelOpinion.worthToContinue}
-                        </span>
-                      </div>
-                    )}
 
                     {/* Link - clickable separately */}
                     {novel.link && (
