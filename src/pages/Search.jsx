@@ -13,7 +13,7 @@ function Search({ darkMode }) {
 
   useEffect(() => {
     loadNovels();
-  }, [search, genre]);
+  }, [search, genre]); // This is already correct, reload when search or genre changes
 
   useEffect(() => {
     document.title = "Novel Search";
@@ -22,23 +22,38 @@ function Search({ darkMode }) {
   const loadNovels = async () => {
     setLoading(true);
     try {
+      // Make sure we pass both search and genre parameters
       const response = await novelApi.getAllNovels(search, genre);
+      console.log("Response data:", response.data); // Debugging
       setNovels(response.data);
-      // Collect unique genres for filter dropdown
-      const genreList = Array.from(
-        new Set(response.data.map((n) => n.genre).filter(Boolean))
-      ).sort();
-      setGenres(genreList);
+
+      // Get all genres for the dropdown (regardless of current filter)
+      if (!genre) {
+        // Only update genres list when not filtering
+        const genreList = Array.from(
+          new Set(response.data.map((n) => n.genre).filter(Boolean))
+        ).sort();
+        setGenres(genreList);
+      }
+    } catch (error) {
+      console.error("Error fetching novels:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Add a function to handle genre changes
+  const handleGenreChange = (e) => {
+    const selectedGenre = e.target.value;
+    setGenre(selectedGenre);
+    console.log("Genre changed to:", selectedGenre); // Debugging
   };
 
   return (
     <div
       style={{
         padding: "32px 16px",
-        background: darkMode 
+        background: darkMode
           ? "linear-gradient(145deg, #1a1a1a 0%, #121212 100%)"
           : "linear-gradient(145deg, #f9f9f9 0%, #ffffff 100%)",
         minHeight: "100vh",
@@ -63,14 +78,14 @@ function Search({ darkMode }) {
               : "linear-gradient(90deg, #0066cc 0%, #004d99 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
-            textShadow: darkMode 
-              ? "0 2px 10px rgba(97, 218, 251, 0.2)" 
+            textShadow: darkMode
+              ? "0 2px 10px rgba(97, 218, 251, 0.2)"
               : "0 2px 10px rgba(0, 102, 204, 0.1)",
           }}
         >
           Novel Library Search
         </h1>
-        
+
         {/* Search Input */}
         <div
           style={{
@@ -118,22 +133,22 @@ function Search({ darkMode }) {
               border: "none",
               fontSize: "18px",
               background: darkMode ? "rgba(255, 255, 255, 0.05)" : "#fff",
-              boxShadow: darkMode 
-                ? "0 8px 32px rgba(0, 0, 0, 0.3)" 
+              boxShadow: darkMode
+                ? "0 8px 32px rgba(0, 0, 0, 0.3)"
                 : "0 8px 32px rgba(0, 0, 0, 0.05)",
               outline: "none",
               color: darkMode ? "#f7f7fb" : "#222",
               transition: "all 0.3s ease",
             }}
             onFocus={(e) => {
-              e.target.style.boxShadow = darkMode 
-                ? "0 12px 36px rgba(97, 218, 251, 0.15)" 
+              e.target.style.boxShadow = darkMode
+                ? "0 12px 36px rgba(97, 218, 251, 0.15)"
                 : "0 12px 36px rgba(0, 102, 204, 0.1)";
               e.target.style.transform = "translateY(-2px)";
             }}
             onBlur={(e) => {
-              e.target.style.boxShadow = darkMode 
-                ? "0 8px 32px rgba(0, 0, 0, 0.3)" 
+              e.target.style.boxShadow = darkMode
+                ? "0 8px 32px rgba(0, 0, 0, 0.3)"
                 : "0 8px 32px rgba(0, 0, 0, 0.05)";
               e.target.style.transform = "translateY(0)";
             }}
@@ -158,8 +173,8 @@ function Search({ darkMode }) {
                 : "rgba(0, 102, 204, 0.03)",
               padding: "12px 24px",
               borderRadius: "12px",
-              boxShadow: darkMode 
-                ? "0 4px 16px rgba(0, 0, 0, 0.2)" 
+              boxShadow: darkMode
+                ? "0 4px 16px rgba(0, 0, 0, 0.2)"
                 : "0 4px 16px rgba(0, 0, 0, 0.03)",
             }}
           >
@@ -178,7 +193,7 @@ function Search({ darkMode }) {
               <select
                 id="genre-select"
                 value={genre}
-                onChange={(e) => setGenre(e.target.value)}
+                onChange={handleGenreChange}
                 style={{
                   width: "100%",
                   padding: "10px 36px 10px 16px",
@@ -253,15 +268,23 @@ function Search({ darkMode }) {
               style={{
                 fontSize: "1.1rem",
                 fontWeight: "500",
-                color: darkMode ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
+                color: darkMode
+                  ? "rgba(255, 255, 255, 0.7)"
+                  : "rgba(0, 0, 0, 0.6)",
               }}
             >
               {novels.length > 0 ? (
                 <>
-                  Found <span style={{ 
-                    color: darkMode ? "#61dafb" : "#0066cc", 
-                    fontWeight: "700" 
-                  }}>{novels.length}</span> novel{novels.length !== 1 ? "s" : ""}
+                  Found{" "}
+                  <span
+                    style={{
+                      color: darkMode ? "#61dafb" : "#0066cc",
+                      fontWeight: "700",
+                    }}
+                  >
+                    {novels.length}
+                  </span>{" "}
+                  novel{novels.length !== 1 ? "s" : ""}
                 </>
               ) : (
                 "No novels found"
@@ -284,7 +307,10 @@ function Search({ darkMode }) {
           >
             <div className="loader-spinner"></div>
             <div
-              style={{ color: darkMode ? "#f7f7fb" : "#333", fontSize: "1.2rem" }}
+              style={{
+                color: darkMode ? "#f7f7fb" : "#333",
+                fontSize: "1.2rem",
+              }}
             >
               Searching novels...
             </div>
@@ -334,7 +360,8 @@ function Search({ darkMode }) {
                 lineHeight: "1.6",
               }}
             >
-              Try adjusting your search terms or filter criteria to find what you're looking for.
+              Try adjusting your search terms or filter criteria to find what
+              you're looking for.
             </div>
           </div>
         ) : (
@@ -521,9 +548,12 @@ function Search({ darkMode }) {
                           style={{
                             fontSize: "0.95rem",
                             fontWeight: "500",
-                            color: genre === novel.genre && genre !== "" 
-                              ? (darkMode ? "#61dafb" : "#0066cc") 
-                              : "inherit"
+                            color:
+                              genre === novel.genre && genre !== ""
+                                ? darkMode
+                                  ? "#61dafb"
+                                  : "#0066cc"
+                                : "inherit",
                           }}
                         >
                           {novel.genre}

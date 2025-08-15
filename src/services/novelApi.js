@@ -6,28 +6,8 @@ const BASE_URL = "http://localhost:8080/novels";
 console.log("novelApi: BASE_URL is set to:", BASE_URL);
 
 export const novelApi = {
-  /**
-   * Fetches all novels, optionally filtered by name and genre.
-   * Expected response format:
-   * [
-   *   {
-   *     link: string,
-   *     originalName: string,
-   *     name: string,
-   *     genre: string,
-   *     novelDetails: {
-   *       description: string,
-   *       mcName: string | null,
-   *       mcCheating: boolean,
-   *       specialCharacteristicOfMc: string | null,
-   *       id: number
-   *     }
-   *   },
-   *   ...
-   * ]
-   */
-  getAllNovels: async () => {
-    return axios.get(`${BASE_URL}/all`); // Changed from /all to base URL
+  getAllNovels: () => {
+    return axios.get(`${BASE_URL}/all`);
   },
 
   addNovel: async (novelData) => {
