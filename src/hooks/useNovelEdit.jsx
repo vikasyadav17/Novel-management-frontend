@@ -12,15 +12,13 @@ export const useNovelEdit = (novel, setNovel, id) => {
     console.log("Starting edit with novel:", novel);
 
     const initialValues = {
-      name: novel.name || "",
+      name: novel.name,
       originalName: novel.originalName || "",
       link: novel.link || "",
       genre: novel.genre || "",
       description: novel.novelDetails?.description || "",
-      mcName: novel.mcName || "",
-      specialCharacteristicOfMc: novel.specialCharacteristicOfMc || "",
 
-      // Include all novelDetails fields (including tags)
+      // Include all novelDetails fields (including mcName)
       ...(novel.novelDetails &&
         Object.keys(novel.novelDetails).reduce((acc, key) => {
           if (key !== "_id" && key !== "description") {
@@ -119,8 +117,6 @@ export const useNovelEdit = (novel, setNovel, id) => {
         originalName: editedValues.originalName,
         link: editedValues.link,
         genre: editedValues.genre,
-        mcName: editedValues.mcName,
-        specialCharacteristicOfMc: editedValues.specialCharacteristicOfMc,
 
         novelDetails: {
           ...novel.novelDetails,

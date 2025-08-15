@@ -498,9 +498,11 @@ function Library({ darkMode }) {
                               letterSpacing: "3px",
                             }}
                           >
-                            {Array.from({ length: 10 }, (_, i) => (
+                            {Array.from({ length: 5 }, (_, i) => (
                               <span key={i} style={{ display: "inline-block" }}>
-                                {i < novel.novelOpinion.rating ? "★" : "☆"}
+                                {i < Math.round(novel.novelOpinion.rating / 2)
+                                  ? "★"
+                                  : "☆"}
                               </span>
                             ))}
                           </span>

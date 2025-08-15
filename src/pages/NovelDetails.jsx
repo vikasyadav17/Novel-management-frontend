@@ -438,8 +438,8 @@ function NovelDetails() {
               );
             })}
 
-          {/* Main Character (mcName) */}
-          {(novel.mcName || isEditing) && (
+          {/* Main Character (mcName) - now handled as novelDetails field */}
+          {(novel.novelDetails?.mcName || isEditing) && (
             <div
               style={{
                 padding: "1.5rem",
@@ -457,22 +457,22 @@ function NovelDetails() {
                 {isEditing ? (
                   <input
                     type="text"
-                    value={editedValues.mcName || ""}
+                    value={editedValues.novelDetails_mcName || ""}
                     onChange={(e) =>
-                      handleFieldChange("mcName", e.target.value)
+                      handleFieldChange("novelDetails_mcName", e.target.value)
                     }
                     placeholder="Main Character Name"
                     style={styles.input}
                   />
                 ) : (
-                  <span style={styles.text}>{novel.mcName}</span>
+                  <span style={styles.text}>{novel.novelDetails?.mcName}</span>
                 )}
               </div>
             </div>
           )}
 
-          {/* MC Trait */}
-          {(novel.specialCharacteristicOfMc || isEditing) && (
+          {/* MC Trait - also move to novelDetails if needed */}
+          {(novel.novelDetails?.specialCharacteristicOfMc || isEditing) && (
             <div
               style={{
                 padding: "1.5rem",
@@ -490,10 +490,12 @@ function NovelDetails() {
                 {isEditing ? (
                   <input
                     type="text"
-                    value={editedValues.specialCharacteristicOfMc || ""}
+                    value={
+                      editedValues.novelDetails_specialCharacteristicOfMc || ""
+                    }
                     onChange={(e) =>
                       handleFieldChange(
-                        "specialCharacteristicOfMc",
+                        "novelDetails_specialCharacteristicOfMc",
                         e.target.value
                       )
                     }
@@ -502,7 +504,7 @@ function NovelDetails() {
                   />
                 ) : (
                   <span style={styles.text}>
-                    {novel.specialCharacteristicOfMc}
+                    {novel.novelDetails?.specialCharacteristicOfMc}
                   </span>
                 )}
               </div>
@@ -584,9 +586,26 @@ function NovelDetails() {
                 color: darkMode ? "#61dafb" : "#0066cc",
                 textDecoration: "none",
                 fontWeight: "600",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.5rem",
               }}
             >
               {novel.link}
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15,3 21,3 21,9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
             </a>
           )}
         </div>
