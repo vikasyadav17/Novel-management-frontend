@@ -19,21 +19,34 @@ function Search({ darkMode }) {
     document.title = "Novel Search";
   }, []);
 
+  // Update the genre filter to show exact matching behavior
   const loadNovels = async () => {
     setLoading(true);
     try {
-      // Make sure we pass both search and genre parameters
-      const response = await novelApi.getAllNovels(search, genre);
-      console.log("Response data:", response.data); // Debugging
-      setNovels(response.data);
+      // Fetch all novels first
+      const response = await novelApi.getAllNovels(search);
+      console.log("Response data before filtering:", response.data);
 
-      // Get all genres for the dropdown (regardless of current filter)
+      // Apply exact genre matching client-side if genre is selected
+      let filteredNovels = response.data;
+      if (genre) {
+        // Filter for exact genre match only
+        filteredNovels = response.data.filter(
+          (novel) => novel.genre === genre // This ensures exact match only
+        );
+        console.log("After exact genre filtering:", filteredNovels);
+      }
+
+      // Set the filtered novels for display
+      setNovels(filteredNovels);
+
+      // Always collect all available genres from the original response
+      // This ensures we don't lose genre options when filtering
       if (!genre) {
-        // Only update genres list when not filtering
-        const genreList = Array.from(
+        const allGenres = Array.from(
           new Set(response.data.map((n) => n.genre).filter(Boolean))
         ).sort();
-        setGenres(genreList);
+        setGenres(allGenres);
       }
     } catch (error) {
       console.error("Error fetching novels:", error);
@@ -187,7 +200,7 @@ function Search({ darkMode }) {
                 letterSpacing: "0.5px",
               }}
             >
-              Filter by Genre:
+              Exact Genre Match:
             </label>
             <div style={{ position: "relative", width: "220px" }}>
               <select
@@ -547,13 +560,22 @@ function Search({ darkMode }) {
                         <span
                           style={{
                             fontSize: "0.95rem",
-                            fontWeight: "500",
+                            fontWeight: genre === novel.genre ? "700" : "500",
                             color:
                               genre === novel.genre && genre !== ""
                                 ? darkMode
                                   ? "#61dafb"
                                   : "#0066cc"
                                 : "inherit",
+                            padding:
+                              genre === novel.genre && genre !== "" ? "0px 8px" : "0",
+                            backgroundColor:
+                              genre === novel.genre && genre !== ""
+                                ? darkMode
+                                  ? "rgba(97, 218, 251, 0.15)"
+                                  : "rgba(0, 102, 204, 0.08)"
+                                : "transparent",
+                            borderRadius: "4px",
                           }}
                         >
                           {novel.genre}
