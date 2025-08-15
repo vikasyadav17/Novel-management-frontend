@@ -4,6 +4,7 @@ A comprehensive web application for managing, tracking, and organizing your nove
 Built with React (Vite) for the frontend and backed by a RESTful API.
 
 ![Novel Library Main View](src/assets/screenshots/library-view.png)
+![Novel Library Main View](src/assets/screenshots/novel-details.png)
 
 ## Features
 
