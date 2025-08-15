@@ -1,6 +1,9 @@
 import axios from "axios";
 
+// Fix the BASE_URL to match your backend
 const BASE_URL = "http://localhost:8080/novels";
+
+console.log("novelApi: BASE_URL is set to:", BASE_URL);
 
 export const novelApi = {
   /**
@@ -23,17 +26,44 @@ export const novelApi = {
    *   ...
    * ]
    */
-  getAllNovels: async (name, genre) => {
-    const params = {};
-    if (name) params.name = name;
-    if (genre) params.genre = genre;
-    return axios.get(`${BASE_URL}/all`, { params });
+  getAllNovels: async () => {
+    return axios.get(`${BASE_URL}/all`); // Changed from /all to base URL
   },
 
   addNovel: async (novelData) => {
-    return axios.post(BASE_URL, novelData, {
-      headers: { "Content-Type": "application/json" },
-    });
+    console.log(
+      "novelApi.addNovel: STARTING - Function called with data:",
+      novelData
+    );
+
+    try {
+      const url = BASE_URL;
+      console.log("novelApi.addNovel: URL:", url);
+      console.log("novelApi.addNovel: Making fetch request...");
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(novelData),
+      });
+
+      console.log("novelApi.addNovel: Response status:", response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("novelApi.addNovel: Error response:", errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("novelApi.addNovel: Success result:", result);
+      return result;
+    } catch (error) {
+      console.error("novelApi.addNovel: ERROR in catch block:", error);
+      throw error;
+    }
   },
 
   updateNovel: async (id, novelData) => {
@@ -56,6 +86,5 @@ export const novelApi = {
     return axios.get(`${BASE_URL}/${id}`);
   },
 
-  getNovelByName: (name) =>
-    axios.get(`http://localhost:8080/novels`, { params: { name } }), // Add method to fetch novel by name
+  getNovelByName: (name) => axios.get(BASE_URL, { params: { name } }), // Updated to use BASE_URL
 };
