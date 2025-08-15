@@ -275,11 +275,13 @@ function Library({ darkMode }) {
             }}
           >
             <colgroup>
-              <col style={{ width: "5%" }} /> {/* ID */}
-              <col style={{ width: "25%" }} /> {/* Title */}
-              <col style={{ width: "15%" }} /> {/* Link */}
-              <col style={{ width: "15%" }} /> {/* Genre */}
-              <col style={{ width: "25%" }} /> {/* Rating */}
+              <col style={{ width: "4%" }} /> {/* ID */}
+              <col style={{ width: "18%" }} /> {/* Title */}
+              <col style={{ width: "13%" }} /> {/* Link */}
+              <col style={{ width: "10%" }} /> {/* Genre */}
+              <col style={{ width: "10%" }} /> {/* Status */}
+              <col style={{ width: "8%" }} /> {/* Total Chapters */}
+              <col style={{ width: "22%" }} /> {/* Rating */}
               <col style={{ width: "15%" }} /> {/* Worth to Continue */}
             </colgroup>
             <thead>
@@ -319,6 +321,24 @@ function Library({ darkMode }) {
                   }}
                 >
                   Genre
+                </th>
+                <th
+                  style={{
+                    color: darkMode ? "#f7f7fb" : undefined,
+                    padding: "10px",
+                    textAlign: "center",
+                  }}
+                >
+                  Status
+                </th>
+                <th
+                  style={{
+                    color: darkMode ? "#f7f7fb" : undefined,
+                    padding: "10px",
+                    textAlign: "center",
+                  }}
+                >
+                  Chapters
                 </th>
                 <th
                   style={{
@@ -394,6 +414,65 @@ function Library({ darkMode }) {
                       }}
                     >
                       {novel.genre}
+                    </td>
+                    <td
+                      style={{
+                        minHeight: "48px",
+                        color: darkMode ? "#f7f7fb" : "#000",
+                        textAlign: "center",
+                      }}
+                    >
+                      {novel.novelDetails?.status ? (
+                        <span
+                          style={{
+                            padding: "4px 8px",
+                            borderRadius: "12px",
+                            fontSize: "0.85rem",
+                            fontWeight: "600",
+                            backgroundColor:
+                              novel.novelDetails.status === "Reading"
+                                ? "#4CAF50"
+                                : novel.novelDetails.status === "Completed"
+                                ? "#2196F3"
+                                : novel.novelDetails.status === "Dropped"
+                                ? "#F44336"
+                                : novel.novelDetails.status === "On Hold"
+                                ? "#FF9800"
+                                : novel.novelDetails.status === "Plan to Read"
+                                ? "#9C27B0"
+                                : "#757575",
+                            color: "white",
+                          }}
+                        >
+                          {novel.novelDetails.status}
+                        </span>
+                      ) : (
+                        "N/A"
+                      )}
+                    </td>
+                    <td
+                      style={{
+                        minHeight: "48px",
+                        color: darkMode ? "#f7f7fb" : "#000",
+                        textAlign: "center",
+                      }}
+                    >
+                      {novel.novelDetails?.totalChapters ? (
+                        <span
+                          style={{
+                            padding: "4px 8px",
+                            borderRadius: "8px",
+                            fontSize: "0.9rem",
+                            fontWeight: "600",
+                            backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
+                            color: darkMode ? "#61dafb" : "#0066cc",
+                          }}
+                        >
+                          {novel.novelDetails.totalChapters}
+                        </span>
+                      ) : (
+                        "N/A"
+                      )}
                     </td>
                     <td
                       style={{
