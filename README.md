@@ -3,7 +3,7 @@
 A comprehensive web application for managing, tracking, and organizing your novel reading collection.  
 Built with React (Vite) for the frontend and backed by a RESTful API.
 
-![Novel Library Screenshot](src/assets/images/screenshot.png)
+![Novel Library Main View](src/assets/screenshots/library-view.png)
 
 ## Features
 
@@ -109,3 +109,16 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+### Screenshot Gallery
+
+<div align="center">
+  <img src="src/assets/screenshots/novel-details.png" alt="Novel Details Page" width="600px" />
+  <p><em>Detailed view of a novel showing all information</em></p>
+  
+  <img src="src/assets/screenshots/dark-mode.png" alt="Dark Mode Interface" width="600px" />
+  <p><em>The application in dark mode</em></p>
+  
+  <img src="src/assets/screenshots/add-novel.png" alt="Add Novel Form" width="600px" />
+  <p><em>Form to add a new novel to your library</em></p>
+</div>
