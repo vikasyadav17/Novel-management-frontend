@@ -47,8 +47,28 @@ function Search({ darkMode }) {
     }
   };
 
+  const getNovelByKeyword = async (keyword) => {
+    console.log("here", keyword);
+    setLoading(true);
+    try {
+      const response = await novelApi.getNovelByKeyword(keyword);
+      setNovels(response.data);
+    } catch (error) {
+      console.error("Error searching novels by keyword:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Simplified handler without debug logging
   const handleGenreChange = (e) => setGenre(e.target.value);
+
+  const handleSearchKeyDown = (e) => {
+    console.log(e);
+    if (e.key === "Enter" || e.key === "NumpadEnter") {
+      getNovelByKeyword(search);
+    }
+  };
 
   return (
     <div
@@ -126,6 +146,7 @@ function Search({ darkMode }) {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
             placeholder="Search novels by name, genre, or description..."
             style={{
               width: "100%",

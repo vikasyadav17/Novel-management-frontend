@@ -57,4 +57,7 @@ export const novelApi = {
   },
 
   getNovelByName: (name) => axios.get(`${BASE_URL}`, { params: { name } }), // Add method to fetch novel by name
+
+  getNovelByKeyword: (keyword) =>
+    axios.get(`${BASE_URL}/search`, { params: { keyword } }),
 };
