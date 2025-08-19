@@ -23,7 +23,7 @@ function Search({ darkMode }) {
     setLoading(true);
     try {
       // Fetch all novels with search parameter
-      const response = await novelApi.getAllNovels(search);
+      const response = await novelApi.getAllNovels(search, genre);
 
       // Apply exact genre matching client-side if genre is selected
       let filteredNovels = response.data;
@@ -47,12 +47,18 @@ function Search({ darkMode }) {
     }
   };
 
-  const getNovelByKeyword = async (keyword) => {
-    console.log("here", keyword);
+  const getNovelByKeyword = async (keyword, genre) => {
+    console.log("here", genre);
     setLoading(true);
     try {
       const response = await novelApi.getNovelByKeyword(keyword);
-      setNovels(response.data);
+      let filteredNovels = response.data;
+      if (genre) {
+        filteredNovels = filteredNovels.filter(
+          (novel) => novel.genre === genre
+        );
+      }
+      setNovels(filteredNovels);
     } catch (error) {
       console.error("Error searching novels by keyword:", error);
     } finally {
@@ -66,7 +72,7 @@ function Search({ darkMode }) {
   const handleSearchKeyDown = (e) => {
     console.log(e);
     if (e.key === "Enter" || e.key === "NumpadEnter") {
-      getNovelByKeyword(search);
+      getNovelByKeyword(search, genre);
     }
   };
 
