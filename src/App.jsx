@@ -11,7 +11,7 @@ import { novelApi } from "./services/novelApi"; // <-- add this import
 
 function App() {
   const [error, setError] = useState(null);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
 
   const handleAddNovel = async (newNovel) => {
     try {
