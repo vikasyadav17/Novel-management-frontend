@@ -12,7 +12,11 @@ function Search({ darkMode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadNovels();
+    if (search.trim()) {
+      getNovelByKeyword(search, genre);
+    } else {
+      loadNovels();
+    }
   }, [search, genre]);
 
   useEffect(() => {
@@ -36,7 +40,7 @@ function Search({ darkMode }) {
       // Only update genres list when not filtering
       if (!genre) {
         const allGenres = Array.from(
-          new Set(response.data.map((n) => n.genre).filter(Boolean))
+          new Set(response.data.map((n) => n.genre).filter(Boolean)),
         ).sort();
         setGenres(allGenres);
       }
@@ -55,7 +59,7 @@ function Search({ darkMode }) {
       let filteredNovels = response.data;
       if (genre) {
         filteredNovels = filteredNovels.filter(
-          (novel) => novel.genre === genre
+          (novel) => novel.genre === genre,
         );
       }
       setNovels(filteredNovels);
@@ -70,10 +74,11 @@ function Search({ darkMode }) {
   const handleGenreChange = (e) => setGenre(e.target.value);
 
   const handleSearchKeyDown = (e) => {
+    console.log("handleSearchKey");
     console.log(e);
-    if (e.key === "Enter" || e.key === "NumpadEnter") {
-      getNovelByKeyword(search, genre);
-    }
+    // if (e.key === "Enter" || e.key === "NumpadEnter") {
+    getNovelByKeyword(search, genre);
+    // }
   };
 
   return (
@@ -152,7 +157,6 @@ function Search({ darkMode }) {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={handleSearchKeyDown}
             placeholder="Search novels by name, genre, or description..."
             style={{
               width: "100%",
@@ -458,14 +462,15 @@ function Search({ darkMode }) {
                             novel.novelDetails.status === "Reading"
                               ? "#4CAF50"
                               : novel.novelDetails.status === "Completed"
-                              ? "#2196F3"
-                              : novel.novelDetails.status === "Dropped"
-                              ? "#F44336"
-                              : novel.novelDetails.status === "On Hold"
-                              ? "#FF9800"
-                              : novel.novelDetails.status === "Plan to Read"
-                              ? "#9C27B0"
-                              : "#757575",
+                                ? "#2196F3"
+                                : novel.novelDetails.status === "Dropped"
+                                  ? "#F44336"
+                                  : novel.novelDetails.status === "On Hold"
+                                    ? "#FF9800"
+                                    : novel.novelDetails.status ===
+                                        "Plan to Read"
+                                      ? "#9C27B0"
+                                      : "#757575",
                           color: "white",
                           textTransform: "uppercase",
                           letterSpacing: "0.5px",
