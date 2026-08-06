@@ -8,6 +8,27 @@ import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
 import { getCoverImage, handleImageError } from "../utils/coverUtils";
 
+const getSortValue = (novel, sortBy) => {
+  switch (sortBy) {
+    case "name":
+      return (novel.name || "").toLowerCase();
+    case "genre":
+      return (novel.genre || "").toLowerCase();
+    case "status":
+      return (novel.novelDetails?.status || "").toLowerCase();
+    case "rating":
+      return Number(novel.novelOpinion?.rating ?? -1);
+    case "lastUpdated":
+      return Date.parse(novel.novelDetails?.lastUpdatedOn || 0) || 0;
+    case "totalChapters":
+      return Number(novel.novelDetails?.totalChapters ?? -1);
+    case "chaptersRead":
+      return Number(novel.novelOpinion?.chaptersRead ?? -1);
+    default:
+      return "";
+  }
+};
+
 function Library({ darkMode }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -17,6 +38,12 @@ function Library({ darkMode }) {
   const [error, setError] = useState(null);
   const [successModal, setSuccessModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [genreFilter, setGenreFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [sortBy, setSortBy] = useState("default");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [genres, setGenres] = useState([]);
+  const [statuses, setStatuses] = useState([]);
   const novelsPerPage = 20;
 
   // Initialize currentPage from URL query param if present
@@ -50,19 +77,12 @@ function Library({ darkMode }) {
     return () => window.removeEventListener("keydown", handler);
   }, [currentPage, filteredNovels.length, novelsPerPage, navigate]);
 
-  // Filter states
-  const [genreFilter, setGenreFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [genres, setGenres] = useState([]);
-  const [statuses, setStatuses] = useState([]);
-
   useEffect(() => {
     document.title = "Novel Library";
     loadNovels();
   }, []);
 
   useEffect(() => {
-    // Apply filters when novels, genreFilter or statusFilter changes
     if (novels.length > 0) {
       let result = [...novels];
 
@@ -76,20 +96,35 @@ function Library({ darkMode }) {
         );
       }
 
+      if (sortBy !== "default") {
+        result.sort((a, b) => {
+          const aValue = getSortValue(a, sortBy);
+          const bValue = getSortValue(b, sortBy);
+          const isDescending = sortOrder === "desc";
+
+          if (typeof aValue === "string" && typeof bValue === "string") {
+            const comparison = aValue.localeCompare(bValue);
+            return isDescending ? -comparison : comparison;
+          }
+
+          const comparison = aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+          return isDescending ? -comparison : comparison;
+        });
+      }
+
       setFilteredNovels(result);
     }
-  }, [novels, genreFilter, statusFilter]);
+  }, [novels, genreFilter, statusFilter, sortBy, sortOrder]);
 
-  // Reset page when filters change
+  // Reset page when filters or sorting change
   useEffect(() => {
     setCurrentPage(1);
-    // update URL to reflect reset page
     try {
       navigate(`${location.pathname}?page=1`, { replace: true });
     } catch (e) {
       // ignore
     }
-  }, [genreFilter, statusFilter]);
+  }, [genreFilter, statusFilter, sortBy, sortOrder, location.pathname, navigate]);
 
   const loadNovels = async () => {
     try {
@@ -492,6 +527,100 @@ function Library({ darkMode }) {
                 </div>
               </div>
 
+              {/* Sort By */}
+              <div style={{ position: "relative", minWidth: "180px" }}>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "8px 32px 8px 12px",
+                    borderRadius: "8px",
+                    border: `1px solid ${darkMode ? "#444" : "#e0e0e0"}`,
+                    background: darkMode ? "#333" : "#fff",
+                    color: darkMode ? "#f7f7fb" : "#333",
+                    appearance: "none",
+                    cursor: "pointer",
+                    fontSize: "0.95rem",
+                  }}
+                >
+                  <option value="default">Default Order</option>
+                  <option value="name">Name</option>
+                  <option value="genre">Genre</option>
+                  <option value="status">Status</option>
+                  <option value="rating">Rating</option>
+                  <option value="lastUpdated">Last Updated</option>
+                  <option value="totalChapters">Total Chapters</option>
+                  <option value="chaptersRead">Chapters Read</option>
+                </select>
+                <div
+                  style={{
+                    position: "absolute",
+                    right: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    pointerEvents: "none",
+                  }}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={darkMode ? "#f7f7fb" : "#333"}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Sort Order */}
+              <div style={{ position: "relative", minWidth: "140px" }}>
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "8px 32px 8px 12px",
+                    borderRadius: "8px",
+                    border: `1px solid ${darkMode ? "#444" : "#e0e0e0"}`,
+                    background: darkMode ? "#333" : "#fff",
+                    color: darkMode ? "#f7f7fb" : "#333",
+                    appearance: "none",
+                    cursor: "pointer",
+                    fontSize: "0.95rem",
+                  }}
+                >
+                  <option value="desc">Descending</option>
+                  <option value="asc">Ascending</option>
+                </select>
+                <div
+                  style={{
+                    position: "absolute",
+                    right: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    pointerEvents: "none",
+                  }}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={darkMode ? "#f7f7fb" : "#333"}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
+              </div>
+
               {/* Clear Filters Button - Only show when filters are applied */}
               {(genreFilter || statusFilter) && (
                 <button
@@ -545,6 +674,7 @@ function Library({ darkMode }) {
               Showing {filteredNovels.length} of {novels.length} novels
               {genreFilter && ` • Genre: ${genreFilter}`}
               {statusFilter && ` • Status: ${statusFilter}`}
+              {sortBy !== "default" && ` • Sorted by ${sortBy} (${sortOrder})`}
             </div>
           )}
 
@@ -762,16 +892,16 @@ function Library({ darkMode }) {
                   boxShadow: darkMode ? "none" : "0 2px 5px rgba(0,0,0,0.05)",
                 }}
               >
-                Page {currentPage} of {Math.ceil(novels.length / novelsPerPage)}
+                Page {currentPage} of {Math.ceil(filteredNovels.length / novelsPerPage)}
               </div>
 
               <button
                 onClick={() =>
-                  currentPage < Math.ceil(novels.length / novelsPerPage) &&
+                  currentPage < Math.ceil(filteredNovels.length / novelsPerPage) &&
                   handlePageChange(currentPage + 1)
                 }
                 disabled={
-                  currentPage >= Math.ceil(novels.length / novelsPerPage)
+                  currentPage >= Math.ceil(filteredNovels.length / novelsPerPage)
                 }
                 style={{
                   display: "flex",
@@ -779,14 +909,14 @@ function Library({ darkMode }) {
                   justifyContent: "center",
                   padding: "10px",
                   background: darkMode
-                    ? currentPage >= Math.ceil(novels.length / novelsPerPage)
+                    ? currentPage >= Math.ceil(filteredNovels.length / novelsPerPage)
                       ? "#1a1a1a"
                       : "#333"
-                    : currentPage >= Math.ceil(novels.length / novelsPerPage)
+                    : currentPage >= Math.ceil(filteredNovels.length / novelsPerPage)
                     ? "#f0f0f0"
                     : "#fff",
                   color:
-                    currentPage >= Math.ceil(novels.length / novelsPerPage)
+                    currentPage >= Math.ceil(filteredNovels.length / novelsPerPage)
                       ? darkMode
                         ? "#555"
                         : "#ccc"

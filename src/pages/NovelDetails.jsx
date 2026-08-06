@@ -202,153 +202,50 @@ function NovelDetails() {
           : "linear-gradient(145deg, #f9f9f9 0%, #ffffff 100%)",
       }}
     >
-      {/* Back Button - Enhanced */}
-      <button
-        onClick={() => {
-          if (fromPage) {
-            navigate(`/library?page=${fromPage}`);
-          } else {
-            navigate(-1);
-          }
-        }}
-        style={{
-          position: "absolute",
-          top: "1.25rem",
-          left: "1.25rem",
-          display: "flex",
-          alignItems: "center",
-          gap: "0.5rem",
-          backgroundColor: darkMode
-            ? "rgba(51, 51, 51, 0.8)"
-            : "rgba(240, 240, 240, 0.8)",
-          color: darkMode ? "#f7f7fb" : "#333",
-          border: "none",
-          padding: "0.5rem 1rem",
-          borderRadius: "8px", // More rounded
-          cursor: "pointer",
-          fontWeight: "500",
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-          zIndex: 5,
-          transition: "all 0.2s ease",
-          backdropFilter: "blur(5px)",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "translateY(-2px)";
-          e.currentTarget.style.boxShadow = "0 6px 8px rgba(0, 0, 0, 0.15)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
-        }}
-      >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+      <div className="novel-details-actions">
+        <button
+          type="button"
+          className="action-button action-button--back"
+          onClick={() => {
+            if (fromPage) {
+              navigate(`/library?page=${fromPage}`);
+            } else {
+              navigate(-1);
+            }
+          }}
         >
-          <path d="M19 12H5" />
-          <polyline points="12 19 5 12 12 5" />
-        </svg>
-        Back
-      </button>
-
-      {/* Edit/Cancel/Review Buttons - Fixed to show proper buttons based on state */}
-      <div
-        style={{
-          position: "absolute",
-          top: "1.25rem",
-          left: "7rem", // Position after the Back button
-          right: "1.25rem", // More space on right since bookmark is removed
-          display: "flex",
-          height: "40px",
-        }}
-      >
-        {!isEditing ? (
-          // When not editing, show only the Edit button
-          <button
-            onClick={startEditing}
-            style={{
-              flex: 1,
-              background: "linear-gradient(90deg, #007bff, #0062cc)",
-              color: "white",
-              border: "none",
-              borderRadius: "8px", // Fully rounded since it's a single button
-              fontWeight: "600",
-              cursor: "pointer",
-              boxShadow: "0 4px 6px rgba(0, 123, 255, 0.2)",
-              transition: "all 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background =
-                "linear-gradient(90deg, #0062cc, #004799)";
-              e.currentTarget.style.boxShadow =
-                "0 6px 8px rgba(0, 123, 255, 0.3)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background =
-                "linear-gradient(90deg, #007bff, #0062cc)";
-              e.currentTarget.style.boxShadow =
-                "0 4px 6px rgba(0, 123, 255, 0.2)";
-            }}
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            Edit
-          </button>
-        ) : (
-          // When in edit mode, show Cancel and Review Changes buttons
-          <>
-            <button
-              onClick={cancelEditing}
-              style={{
-                flex: "0 0 100px",
-                backgroundColor: darkMode
-                  ? "rgba(68, 68, 68, 0.9)"
-                  : "rgba(204, 204, 204, 0.9)",
-                color: darkMode ? "#f7f7fb" : "#333",
-                border: "none",
-                borderRadius: "8px 0 0 8px", // More rounded on left side
-                fontWeight: "500",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                backdropFilter: "blur(5px)",
-              }}
-            >
-              Cancel
+            <path d="M19 12H5" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
+          Back
+        </button>
+
+        <div className="action-button-group">
+          {!isEditing ? (
+            <button type="button" className="action-button action-button--primary" onClick={startEditing}>
+              Edit
             </button>
-            <button
-              onClick={handleReviewChanges}
-              style={{
-                flex: 1,
-                background: "linear-gradient(90deg, #007bff, #0062cc)",
-                color: "white",
-                border: "none",
-                borderRadius: "0 8px 8px 0", // More rounded on right side
-                fontWeight: "600",
-                cursor: "pointer",
-                boxShadow: "0 4px 6px rgba(0, 123, 255, 0.2)",
-                transition: "all 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background =
-                  "linear-gradient(90deg, #0062cc, #004799)";
-                e.currentTarget.style.boxShadow =
-                  "0 6px 8px rgba(0, 123, 255, 0.3)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background =
-                  "linear-gradient(90deg, #007bff, #0062cc)";
-                e.currentTarget.style.boxShadow =
-                  "0 4px 6px rgba(0, 123, 255, 0.2)";
-              }}
-            >
-              Review Changes
-            </button>
-          </>
-        )}
+          ) : (
+            <>
+              <button type="button" className="action-button action-button--secondary" onClick={cancelEditing}>
+                Cancel
+              </button>
+              <button type="button" className="action-button action-button--primary" onClick={handleReviewChanges}>
+                Review Changes
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       <NovelHeader
