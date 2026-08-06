@@ -1,18 +1,26 @@
 // filepath: d:\Save your projects here\Mern\novel-library\src\App.jsx
 // App.jsx — Top-level application component: sets up routing, handlers for adding/bulk-uploading novels, and dark-mode UI
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import NovelForm from "./components/NovelForm";
 import Library from "./pages/Library";
 import Search from "./pages/Search"; // import Search page
 import BulkUploadPage from "./pages/BulkUploadPage"; // Import BulkUploadPage
 import NovelDetails from "./pages/NovelDetails"; // Import NovelDetails
+import AddNovel from "./pages/AddNovel";
+import NotificationDialog from "./components/NotificationDialog";
+import { ThemeContext } from "./context/ThemeContext";
 import "./App.css";
 import { novelApi } from "./services/novelApi"; // <-- add this import
 
 function App() {
+  const [notification, setNotification] = useState({
+    visible: false,
+    type: "info",
+    title: "",
+    message: "",
+  });
   const [error, setError] = useState(null);
-  const [darkMode, setDarkMode] = useState(true);
+  const { darkMode, toggleDarkMode } = useContext(ThemeContext);
 
   const handleAddNovel = async (newNovel) => {
     try {
@@ -20,20 +28,26 @@ function App() {
       const data = resp?.data ?? resp;
       console.log("Add novel response:", resp, data);
 
-      // Prefer server message, fallback to generic text
       const message = data?.message || data?.msg || "Novel added successfully";
-
-      // If server returns explicit success flag use it, otherwise infer from HTTP status
       const success =
         typeof data?.success === "boolean"
           ? data.success
           : resp?.status >= 200 && resp?.status < 300;
 
       if (success) {
-        alert(message);
+        setNotification({
+          visible: true,
+          type: "success",
+          title: "Novel Added",
+          message,
+        });
       } else {
-        // Server accepted request but responded with a domain-level failure (e.g. validation)
-        alert(message || "Request completed but returned invalid result.");
+        setNotification({
+          visible: true,
+          type: "error",
+          title: "Add Failed",
+          message: message || "Request completed but returned invalid result.",
+        });
       }
 
       return resp;
@@ -45,7 +59,12 @@ function App() {
         err?.message ||
         "Failed to add novel";
       setError("Failed to add novel: " + backendMessage);
-      alert("Error adding novel: " + backendMessage);
+      setNotification({
+        visible: true,
+        type: "error",
+        title: "Add Failed",
+        message: backendMessage,
+      });
       throw err; // re-throw so callers can handle if needed
     }
   };
@@ -59,6 +78,10 @@ function App() {
       console.error(err);
       setError("Failed to upload novels in bulk");
     }
+  };
+
+  const closeNotification = () => {
+    setNotification((current) => ({ ...current, visible: false }));
   };
 
   return (
@@ -223,16 +246,8 @@ function App() {
         </header>
         <main className="main-content">
           <Routes>
-            <Route
-              path="/"
-              element={
-                <NovelForm
-                  onAddNovel={handleAddNovel}
-                  onBulkUpload={handleBulkUpload}
-                  darkMode={false} // Pass darkMode if needed
-                />
-              }
-            />
+            <Route path="/" element={<AddNovel />} />
+            <Route path="/add-novel" element={<AddNovel />} />
             <Route path="/library" element={<Library darkMode={darkMode} />} />
             <Route
               path="/search"
@@ -247,10 +262,18 @@ function App() {
             {/* Add route for novel details */}
           </Routes>
           {error && <div>{error}</div>}
+         <NotificationDialog
+           visible={notification.visible}
+           type={notification.type}
+           title={notification.title}
+           message={notification.message}
+           darkMode={darkMode}
+           onClose={closeNotification}
+         />
         </main>
         {/* Dark mode toggle button at bottom right */}
         <button
-          onClick={() => setDarkMode((d) => !d)}
+          onClick={toggleDarkMode}
           style={{
             position: "fixed",
             right: "32px",

@@ -1,5 +1,5 @@
 // pages/NovelDetails.jsx — Detail page for a single novel: supports viewing and editing novel data
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useContext } from "react";
 import React from "react";
 import { novelApi } from "../services/novelApi";
@@ -8,6 +8,7 @@ import { createStyles } from "../styles/novelDetailsStyles";
 import { useNovelEdit } from "../hooks/useNovelEdit";
 import NovelHeader from "../components/NovelHeader";
 import FieldRenderer from "../components/FieldRenderer";
+import NotificationDialog from "../components/NotificationDialog";
 import { getFieldConfig } from "../utils/fieldConfig";
 import moment from "moment";
 import "./NovelDetails.css";
@@ -16,11 +17,17 @@ import { getCoverImage, handleImageError } from "../utils/coverUtils";
 function NovelDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { darkMode } = useContext(ThemeContext);
   const [novel, setNovel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [notification, setNotification] = useState({
+    visible: false,
+    type: "info",
+    title: "",
+    message: "",
+  });
 
   const styles = createStyles(darkMode);
   const {
@@ -55,12 +62,40 @@ function NovelDetails() {
     return moment(dateString).format("DD MMM YYYY");
   };
 
-  // Simple save function without extra functionality
+  const fromPageParam = parseInt(new URLSearchParams(location.search).get("fromPage"), 10);
+  const fromPage = Number.isInteger(fromPageParam) && fromPageParam > 0 ? fromPageParam : location?.state?.fromPage;
+
+  const handleReviewChanges = () => {
+    const hasChanges = showChanges();
+    if (!hasChanges) {
+      setNotification({
+        visible: true,
+        type: "error",
+        title: "No Changes Detected",
+        message: "Please update a field before reviewing changes.",
+      });
+    }
+  };
+
   const handleSaveChanges = async () => {
-    const success = await saveChanges();
-    if (success) {
+    const result = await saveChanges();
+    if (result.success) {
       setShowComparisonModal(false);
-      setShowSuccessModal(true);
+      setNotification({
+        visible: true,
+        type: "success",
+        title: "Saved Successfully",
+        message: result.message || "Your changes have been saved.",
+      });
+    } else {
+      setNotification({
+        visible: true,
+        type: "error",
+        title: "Save Failed",
+        message:
+          result.message ||
+          "There was a problem saving your changes. Please try again.",
+      });
     }
   };
 
@@ -108,12 +143,32 @@ function NovelDetails() {
         .replace(/^./, (str) => str.toUpperCase());
 
       // Add the field to novelDetailsFields
+      const fieldConfig = {
+        novelDetails_status: {
+          type: "select",
+          options: [
+            { value: "", label: "Select Status" },
+            { value: "Reading", label: "Reading" },
+            { value: "Completed", label: "Completed" },
+            { value: "Dropped", label: "Dropped" },
+            { value: "On Hold", label: "On Hold" },
+            { value: "Plan to Read", label: "Plan to Read" },
+          ],
+        },
+        novelDetails_totalChapters: {
+          type: "number",
+        },
+      };
+
       novelDetailsFields.push({
         key: fieldKey,
-        type: fieldName === "totalChapters" ? "number" : "text",
+        type: fieldConfig[fieldKey]?.type || (fieldName === "totalChapters" ? "number" : "text"),
         label,
         value: defaultValue,
         placeholder: label,
+        ...(fieldConfig[fieldKey]?.options && {
+          options: fieldConfig[fieldKey].options,
+        }),
       });
     }
   });
@@ -149,7 +204,13 @@ function NovelDetails() {
     >
       {/* Back Button - Enhanced */}
       <button
-        onClick={() => navigate("/library")}
+        onClick={() => {
+          if (fromPage) {
+            navigate(`/library?page=${fromPage}`);
+          } else {
+            navigate(-1);
+          }
+        }}
         style={{
           position: "absolute",
           top: "1.25rem",
@@ -259,7 +320,7 @@ function NovelDetails() {
               Cancel
             </button>
             <button
-              onClick={showChanges}
+              onClick={handleReviewChanges}
               style={{
                 flex: 1,
                 background: "linear-gradient(90deg, #007bff, #0062cc)",
@@ -801,39 +862,14 @@ function NovelDetails() {
         </div>
       )}
 
-      {/* Success Modal */}
-      {showSuccessModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modalContent}>
-            <h2
-              style={{
-                fontSize: "1.5rem",
-                marginBottom: "1.5rem",
-                color: darkMode ? "#61dafb" : "#0066cc",
-              }}
-            >
-              Changes Saved Successfully!
-            </h2>
-            <div style={{ textAlign: "center", marginBottom: "1rem" }}>
-              Your changes have been saved.
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowSuccessModal(false)}
-              style={{
-                padding: "0.5rem 1rem",
-                backgroundColor: darkMode ? "#61dafb" : "#0066cc",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      <NotificationDialog
+        visible={notification.visible}
+        type={notification.type}
+        title={notification.title}
+        message={notification.message}
+        darkMode={darkMode}
+        onClose={() => setNotification((current) => ({ ...current, visible: false }))}
+      />
     </div>
   );
 }

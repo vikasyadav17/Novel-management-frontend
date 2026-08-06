@@ -7,6 +7,7 @@ export const useNovelEdit = (novel, setNovel, id) => {
   const [editedValues, setEditedValues] = useState({});
   const [showComparisonModal, setShowComparisonModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState(null);
 
   const startEditing = () => {
     if (!novel) return;
@@ -69,19 +70,40 @@ export const useNovelEdit = (novel, setNovel, id) => {
     });
 
     if (hasChanges) {
+      setError(null);
       setShowComparisonModal(true);
-    } else {
-      alert("No changes detected");
+      return true;
     }
+
+    setError("No changes detected");
+    return false;
   };
 
   const saveChanges = async () => {
     const novelId = novel?._id || id;
     if (!novelId) {
-      alert(
-        "Error: Novel ID not found. Please refresh the page and try again."
-      );
-      return;
+      const message =
+        "Error: Novel ID not found. Please refresh the page and try again.";
+      setError(message);
+      return { success: false, message };
+    }
+
+    const totalChaptersValue = Number(
+      editedValues.novelDetails_totalChapters ?? novel?.novelDetails?.totalChapters ?? 0
+    );
+    const chaptersReadValue = Number(
+      editedValues.novelOpinion_chaptersRead ?? novel?.novelOpinion?.chaptersRead ?? 0
+    );
+
+    if (
+      totalChaptersValue > 0 &&
+      chaptersReadValue > totalChaptersValue
+    ) {
+      const message =
+        "Chapters read cannot be greater than total chapters. Please correct the value before saving.";
+      setError(message);
+      setIsSaving(false);
+      return { success: false, message };
     }
 
     console.log("Saving with editedValues:", editedValues);
@@ -108,9 +130,10 @@ export const useNovelEdit = (novel, setNovel, id) => {
       });
 
       if (!hasChanges) {
-        alert("No changes detected");
+        const message = "No changes detected";
+        setError(message);
         setIsSaving(false);
-        return;
+        return { success: false, message };
       }
 
       // Prepare the data structure for the backend
@@ -163,14 +186,15 @@ export const useNovelEdit = (novel, setNovel, id) => {
       setIsEditing(false);
       setEditedValues({});
       setShowComparisonModal(false);
-      alert("Changes saved successfully!");
+      setError(null);
+      return { success: true, message: "Changes saved successfully!" };
     } catch (error) {
       console.error("Error saving changes:", error);
-      alert(
-        `Failed to save changes: ${
-          error.response?.data?.message || error.message
-        }`
-      );
+      const message = `Failed to save changes: ${
+        error.response?.data?.message || error.message
+      }`;
+      setError(message);
+      return { success: false, message };
     } finally {
       setIsSaving(false);
     }
@@ -181,6 +205,7 @@ export const useNovelEdit = (novel, setNovel, id) => {
     editedValues,
     showComparisonModal,
     isSaving,
+    error,
     startEditing,
     cancelEditing,
     handleFieldChange,

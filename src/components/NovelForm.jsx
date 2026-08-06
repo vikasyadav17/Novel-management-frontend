@@ -1,5 +1,6 @@
 // components/NovelForm.jsx — Form used to collect novel information and opinion before sending to the API
 import React, { useState } from "react";
+import NotificationDialog from "./NotificationDialog";
 
 function NovelForm({ onAddNovel, darkMode }) {
   console.log("NovelForm: onAddNovel prop received:", typeof onAddNovel);
@@ -26,6 +27,13 @@ function NovelForm({ onAddNovel, darkMode }) {
       favorite: false,
       worthToContinue: false,
     },
+  });
+
+  const [notification, setNotification] = useState({
+    visible: false,
+    type: "info",
+    title: "",
+    message: "",
   });
 
   const handleChange = (e) => {
@@ -67,16 +75,26 @@ function NovelForm({ onAddNovel, darkMode }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted with data:", formData);
-    console.log("NovelForm: onAddNovel function:", typeof onAddNovel);
-    console.log(
-      "NovelForm: Parent component check - onAddNovel name:",
-      onAddNovel?.name
-    );
 
-    // Structure the data properly for the API
+    const totalChaptersNumber = Number(formData.novelDetails.totalChapters);
+    const chaptersReadNumber = Number(formData.novelOpinion.chaptersRead);
+
+    if (
+      totalChaptersNumber > 0 &&
+      chaptersReadNumber > totalChaptersNumber
+    ) {
+      setNotification({
+        visible: true,
+        type: "error",
+        title: "Invalid Chapter Count",
+        message:
+          "Please ensure Chapters Read is not greater than Total Chapters before submitting.",
+      });
+      return;
+    }
+
     const novelData = {
       ...formData,
       novelDetails: {
@@ -84,43 +102,55 @@ function NovelForm({ onAddNovel, darkMode }) {
         addedOn: new Date().toISOString(),
         lastUpdatedOn: new Date().toISOString(),
       },
-      // Always include novelOpinion (use defaults if user didn't fill)
       novelOpinion: {
         ...formData.novelOpinion,
       },
     };
 
-    console.log("Sending to API:", novelData);
-
-    if (typeof onAddNovel === "function") {
-      console.log("NovelForm: Calling onAddNovel function");
-      onAddNovel(novelData);
-    } else {
-      console.error("NovelForm: onAddNovel is not a function!", onAddNovel);
+    try {
+      if (typeof onAddNovel === "function") {
+        await onAddNovel(novelData);
+        setFormData({
+          link: "",
+          originalName: "",
+          name: "",
+          genre: "",
+          novelDetails: {
+            description: "",
+            mcName: "",
+            specialCharacteristicOfMc: "",
+            novelCover: "",
+            status: "",
+            totalChapters: "",
+            tags: "",
+          },
+          novelOpinion: {
+            rating: null,
+            chaptersRead: 0,
+            favorite: false,
+            worthToContinue: false,
+          },
+        });
+      } else {
+        console.error("NovelForm: onAddNovel is not a function!", onAddNovel);
+        setNotification({
+          visible: true,
+          type: "error",
+          title: "Unable to Add Novel",
+          message: "The save function is not available. Please refresh the page and try again.",
+        });
+      }
+    } catch (err) {
+      console.error("NovelForm: Add novel failed", err);
+      setNotification({
+        visible: true,
+        type: "error",
+        title: "Add Failed",
+        message:
+          err?.response?.data?.message || err?.message ||
+          "Failed to add novel. Please try again.",
+      });
     }
-
-    // Reset form
-    setFormData({
-      link: "",
-      originalName: "",
-      name: "",
-      genre: "",
-      novelDetails: {
-        description: "",
-        mcName: "",
-        specialCharacteristicOfMc: "",
-        novelCover: "",
-        status: "",
-        totalChapters: "",
-        tags: "",
-      },
-      novelOpinion: {
-        rating: null,
-        chaptersRead: 0,
-        favorite: false,
-        worthToContinue: false,
-      },
-    });
   };
 
   // Form styling based on dark mode
@@ -129,18 +159,22 @@ function NovelForm({ onAddNovel, darkMode }) {
       maxWidth: "800px",
       margin: "0 auto",
       padding: "2rem",
-      backgroundColor: darkMode ? "#2a2a2a" : "#ffffff",
-      borderRadius: "10px",
+      background: darkMode ? "rgba(15, 23, 42, 0.96)" : "#ffffff",
+      borderRadius: "18px",
+      border: darkMode ? "1px solid rgba(148, 163, 184, 0.16)" : "1px solid rgba(148, 163, 184, 0.2)",
       boxShadow: darkMode
-        ? "0 4px 20px rgba(0, 0, 0, 0.5)"
-        : "0 4px 20px rgba(0, 0, 0, 0.1)",
+        ? "0 16px 40px rgba(2, 6, 23, 0.32)"
+        : "0 16px 40px rgba(15, 23, 42, 0.08)",
     },
     formSection: {
       marginBottom: "2rem",
       padding: "1.5rem",
-      backgroundColor: darkMode ? "#333" : "#f8f9fa",
-      borderRadius: "8px",
-      borderLeft: `4px solid ${darkMode ? "#61dafb" : "#0066cc"}`,
+      backgroundColor: darkMode ? "rgba(30, 41, 59, 0.75)" : "#f8f9fa",
+      borderRadius: "12px",
+      borderLeft: `4px solid ${darkMode ? "#60a5fa" : "#2563eb"}`,
+      boxShadow: darkMode
+        ? "inset 0 1px 0 rgba(255,255,255,0.04)"
+        : "inset 0 1px 0 rgba(148, 163, 184, 0.12)",
     },
     sectionTitle: {
       fontSize: "1.2rem",
@@ -473,6 +507,11 @@ function NovelForm({ onAddNovel, darkMode }) {
                 type="number"
                 name="chaptersRead"
                 min="0"
+                max={
+                  formData.novelDetails.totalChapters
+                    ? Number(formData.novelDetails.totalChapters)
+                    : undefined
+                }
                 value={formData.novelOpinion.chaptersRead}
                 onChange={handleChange}
                 style={styles.input}
@@ -517,6 +556,14 @@ function NovelForm({ onAddNovel, darkMode }) {
           Add Novel
         </button>
       </form>
+      <NotificationDialog
+        visible={notification.visible}
+        type={notification.type}
+        title={notification.title}
+        message={notification.message}
+        darkMode={darkMode}
+        onClose={() => setNotification((current) => ({ ...current, visible: false }))}
+      />
     </div>
   );
 }

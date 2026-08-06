@@ -429,7 +429,7 @@ function Search({ darkMode }) {
                     display: "flex",
                     flexDirection: "column",
                   }}
-                  onClick={() => navigate(`/novel/${id}`)}
+                  onClick={() => navigate(`/novel/${id}?fromPage=1`)}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = "translateY(-3px)";
                     e.currentTarget.style.boxShadow = darkMode

@@ -427,7 +427,7 @@ function Library({ darkMode }) {
                         cursor: "pointer",
                         textDecoration: "underline",
                       }}
-                      onClick={() => navigate(`/novel/${id}`)}
+                      onClick={() => navigate(`/novel/${id}?fromPage=${currentPage}`)}
                     >
                       {novel.name}
                     </td>
