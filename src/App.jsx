@@ -1,4 +1,5 @@
 // filepath: d:\Save your projects here\Mern\novel-library\src\App.jsx
+// App.jsx — Top-level application component: sets up routing, handlers for adding/bulk-uploading novels, and dark-mode UI
 import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import NovelForm from "./components/NovelForm";

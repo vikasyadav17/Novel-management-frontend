@@ -1,3 +1,4 @@
+// pages/Library.jsx — Main library page: loads novels, provides filters, export and pagination
 import { useState, useEffect } from "react";
 import { novelApi } from "../services/novelApi";
 import logger from "../utils/logger";

@@ -1,3 +1,4 @@
+// components/BulkUpload.jsx — Handles Excel file parsing and formatting, then forwards data to the API
 import React, { useState } from "react";
 import * as XLSX from "xlsx";
 import { novelApi } from "../services/novelApi"; // Import novelApi

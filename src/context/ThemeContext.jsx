@@ -1,3 +1,4 @@
+// ThemeContext.jsx — Provides dark/light theme state to the app via React Context
 import { createContext, useState } from "react";
 
 export const ThemeContext = createContext();

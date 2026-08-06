@@ -1,3 +1,4 @@
+// components/AddNovel.jsx — Component related utilities for adding and editing novels (handles list, inline edits, pagination, and modals)
 import { useState, useEffect, useRef } from "react";
 import { novelApi } from "../services/novelApi";
 import logger from "../utils/logger";
