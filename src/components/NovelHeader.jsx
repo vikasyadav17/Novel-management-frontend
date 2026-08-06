@@ -91,7 +91,10 @@ const NovelHeader = ({
           }}
         />
       ) : (
-        <h1 style={{ ...styles.heading, marginBottom: "1rem" }}>
+        <h1
+          className="novel-details-title"
+          style={{ ...styles.heading, marginBottom: "1rem" }}
+        >
           {novel.name}
         </h1>
       )}

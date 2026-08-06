@@ -21,6 +21,7 @@ export const createStyles = (darkMode) => ({
   },
 
   text: {
+    // color: "#333333",
     color: darkMode ? "#ffffff" : "#333333",
     lineHeight: "1.8",
     fontSize: "1.05rem",
@@ -28,12 +29,7 @@ export const createStyles = (darkMode) => ({
   },
 
   heading: {
-    background: darkMode
-      ? "linear-gradient(135deg, #61dafb 0%, #4ecdc4 50%, #45b7d1 100%)"
-      : "linear-gradient(135deg, #0066cc 0%, #0099ff 50%, #00bcd4 100%)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    backgroundClip: "text",
+    color: "#0066cc",
     fontSize: "3.5rem",
     fontWeight: "800",
     marginBottom: "1.5rem",
@@ -41,7 +37,7 @@ export const createStyles = (darkMode) => ({
     position: "relative",
     letterSpacing: "-0.02em",
     lineHeight: "1.1",
-    textShadow: "none",
+    textShadow: "0 2px 10px rgba(0, 102, 204, 0.12)",
     animation: "fadeInUp 0.8s ease-out",
   },
 
@@ -50,13 +46,8 @@ export const createStyles = (darkMode) => ({
     fontSize: "1.15rem",
     display: "inline-block",
     minWidth: "160px",
-    background: darkMode
-      ? "linear-gradient(135deg, #61dafb, #4ecdc4)"
-      : "linear-gradient(135deg, #0066cc, #0099ff)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    backgroundClip: "text",
-    transition: "all 0.3s ease",
+    color: "#2563eb",
+    transition: "color 0.3s ease",
     marginBottom: "0.5rem",
   },
 

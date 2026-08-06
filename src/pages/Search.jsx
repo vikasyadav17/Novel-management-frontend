@@ -106,11 +106,7 @@ function Search({ darkMode }) {
             fontSize: "2.5rem",
             fontWeight: "700",
             marginBottom: "24px",
-            background: darkMode
-              ? "linear-gradient(90deg, #61dafb 0%, #3a95e3 100%)"
-              : "linear-gradient(90deg, #0066cc 0%, #004d99 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
+            color: darkMode ? "#61dafb" : "#2563eb",
             textShadow: darkMode
               ? "0 2px 10px rgba(97, 218, 251, 0.2)"
               : "0 2px 10px rgba(0, 102, 204, 0.1)",
