@@ -2,10 +2,11 @@
 import { useState, useEffect, useRef } from "react";
 import { novelApi } from "../services/novelApi";
 import logger from "../utils/logger";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function Library({ darkMode }) {
   const navigate = useNavigate(); // Initialize navigate
+  const location = useLocation();
   const [novels, setNovels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,6 +24,40 @@ function Library({ darkMode }) {
   const [currentPage, setCurrentPage] = useState(1); // Current page for pagination
   const novelsPerPage = 10; // Number of novels per page
   const tableRef = useRef();
+
+  // Initialize currentPage from URL query param if present
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(location.search);
+      const page = parseInt(params.get("page"), 10);
+      if (page && page > 0) setCurrentPage(page);
+    } catch (e) {
+      // ignore
+    }
+  }, [location.search]);
+
+  // Keyboard navigation: left/right arrows to change pages
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key === "ArrowLeft") {
+        setCurrentPage((prev) => {
+          const next = Math.max(1, prev - 1);
+          // update URL
+          navigate(`${location.pathname}?page=${next}`, { replace: true });
+          return next;
+        });
+      } else if (e.key === "ArrowRight") {
+        setCurrentPage((prev) => {
+          const max = Math.max(1, Math.ceil(novels.length / novelsPerPage));
+          const next = Math.min(max, prev + 1);
+          navigate(`${location.pathname}?page=${next}`, { replace: true });
+          return next;
+        });
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [location.pathname, novels.length, novelsPerPage, navigate]);
 
   // Error boundary state
   const [renderError, setRenderError] = useState(null);
@@ -205,6 +240,12 @@ function Library({ darkMode }) {
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
+    // reflect page in URL so navigation back/forward preserves it
+    try {
+      navigate(`${location.pathname}?page=${pageNumber}`, { replace: true });
+    } catch (e) {
+      // ignore
+    }
   };
 
   const paginatedNovels = novels.slice(

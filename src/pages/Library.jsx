@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { novelApi } from "../services/novelApi";
 import logger from "../utils/logger";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/Library.css";
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
@@ -10,6 +10,7 @@ import { getCoverImage, handleImageError } from "../utils/coverUtils";
 
 function Library({ darkMode }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [novels, setNovels] = useState([]);
   const [filteredNovels, setFilteredNovels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,6 +18,39 @@ function Library({ darkMode }) {
   const [successModal, setSuccessModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const novelsPerPage = 20;
+
+  // Initialize currentPage from URL query param if present
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(location.search);
+      const page = parseInt(params.get("page"), 10);
+      if (page && page > 0) setCurrentPage(page);
+    } catch (e) {
+      // ignore
+    }
+  }, [location.search]);
+
+  // Keyboard navigation for pagination
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key === "ArrowLeft") {
+        setCurrentPage((prev) => {
+          const next = Math.max(1, prev - 1);
+          navigate(`${location.pathname}?page=${next}`, { replace: true });
+          return next;
+        });
+      } else if (e.key === "ArrowRight") {
+        setCurrentPage((prev) => {
+          const max = Math.max(1, Math.ceil(filteredNovels.length / novelsPerPage));
+          const next = Math.min(max, prev + 1);
+          navigate(`${location.pathname}?page=${next}`, { replace: true });
+          return next;
+        });
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [location.pathname, filteredNovels.length, novelsPerPage, navigate]);
 
   // Filter states
   const [genreFilter, setGenreFilter] = useState("");
@@ -51,6 +85,12 @@ function Library({ darkMode }) {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
+    // update URL to reflect reset page
+    try {
+      navigate(`${location.pathname}?page=1`, { replace: true });
+    } catch (e) {
+      // ignore
+    }
   }, [genreFilter, statusFilter]);
 
   const loadNovels = async () => {
@@ -86,6 +126,12 @@ function Library({ darkMode }) {
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
+    // reflect page in URL so navigation back/forward preserves it
+    try {
+      navigate(`${location.pathname}?page=${pageNumber}`, { replace: true });
+    } catch (e) {
+      // ignore
+    }
   };
 
   // Pagination
