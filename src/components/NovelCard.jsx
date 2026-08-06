@@ -1,3 +1,4 @@
+// components/NovelCard.jsx — Lightweight presentational card showing a novel's title, id and basic metadata
 import React from "react";
 
 function NovelCard({ link, originalName, name, genre, novelDetails }) {

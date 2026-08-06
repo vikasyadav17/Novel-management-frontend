@@ -1,3 +1,4 @@
+// components/FieldRenderer.jsx — Small renderer to display or edit a single field based on field type and edit mode
 import React from "react";
 
 const FieldRenderer = ({

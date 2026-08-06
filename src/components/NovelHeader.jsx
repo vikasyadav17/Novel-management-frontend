@@ -1,3 +1,4 @@
+// components/NovelHeader.jsx — Displays novel header information (cover, title, original name) and optional rating controls
 import React, { useState } from "react";
 
 const NovelHeader = ({

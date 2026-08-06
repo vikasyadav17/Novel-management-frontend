@@ -1,3 +1,4 @@
+// pages/NovelDetails.jsx — Detail page for a single novel: supports viewing and editing novel data
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useContext } from "react";
 import React from "react";

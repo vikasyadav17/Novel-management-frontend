@@ -1,3 +1,4 @@
+// pages/Search.jsx — Search UI and logic for searching novels by keyword and filtering by genre
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { novelApi } from "../services/novelApi";

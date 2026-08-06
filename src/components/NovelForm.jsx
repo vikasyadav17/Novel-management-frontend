@@ -1,3 +1,4 @@
+// components/NovelForm.jsx — Form used to collect novel information and opinion before sending to the API
 import React, { useState } from "react";
 
 function NovelForm({ onAddNovel, darkMode }) {

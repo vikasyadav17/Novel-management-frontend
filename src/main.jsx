@@ -1,3 +1,4 @@
+// main.jsx — Application entry: mounts React app and provides Theme context
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";

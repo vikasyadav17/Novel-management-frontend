@@ -1,3 +1,4 @@
+// hooks/useNovelEdit.jsx — Custom hook to manage edit state, edited values, and saving logic for a single novel
 import { useState } from "react";
 import { novelApi } from "../services/novelApi";
 

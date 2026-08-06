@@ -1,3 +1,4 @@
+// services/novelApi.js — Thin API client wrapping axios for novel-related endpoints
 import axios from "axios";
 import env from "../utils/env";
 

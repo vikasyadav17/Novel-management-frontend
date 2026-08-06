@@ -1,3 +1,4 @@
+// pages/BulkUploadPage.jsx — Page that uses the BulkUpload component and shows upload results/modals
 import React, { useState } from "react";
 import BulkUpload from "../components/BulkUpload";
 import logger from "../utils/logger"; // Import the logger

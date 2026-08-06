@@ -1,3 +1,4 @@
+// pages/AddNovel.jsx — Page wrapper that provides theme context and handles submit for adding a new novel
 import React, { useContext } from "react";
 import { ThemeContext } from "../context/ThemeContext";
 import { novelApi } from "../services/novelApi";
