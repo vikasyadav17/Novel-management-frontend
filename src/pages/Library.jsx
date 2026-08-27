@@ -40,7 +40,7 @@ function Library({ darkMode }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [genreFilter, setGenreFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [sortBy, setSortBy] = useState("default");
+  const [sortBy, setSortBy] = useState("lastUpdated");
   const [sortOrder, setSortOrder] = useState("desc");
   const [genres, setGenres] = useState([]);
   const [statuses, setStatuses] = useState([]);
