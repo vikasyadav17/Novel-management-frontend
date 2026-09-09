@@ -6,6 +6,7 @@ import { getCoverImage, handleImageError } from "../utils/coverUtils";
 
 function Search({ darkMode }) {
   const [novels, setNovels] = useState([]);
+  const [allNovels, setAllNovels] = useState([]);
   const [search, setSearch] = useState("");
   const [genre, setGenre] = useState("");
   const [genres, setGenres] = useState([]);
@@ -13,12 +14,40 @@ function Search({ darkMode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (search.trim()) {
-      getNovelByKeyword(search, genre);
-    } else {
-      loadNovels();
+    loadNovels();
+  }, []);
+
+  useEffect(() => {
+    if (!allNovels.length) {
+      setNovels([]);
+      return;
     }
-  }, [search, genre]);
+
+    const query = search.trim().toLowerCase();
+    let filteredNovels = allNovels;
+
+    if (query) {
+      filteredNovels = allNovels.filter((novel) => {
+        const haystacks = [
+          novel?.name,
+          novel?.originalName,
+          novel?.genre,
+          novel?.novelDetails?.description,
+        ];
+
+        return haystacks.some((value) =>
+          String(value ?? "").toLowerCase().includes(query),
+        );
+      });
+    }
+
+    if (genre) {
+      filteredNovels = filteredNovels.filter((novel) => novel.genre === genre);
+    }
+
+    setNovels(filteredNovels);
+    setLoading(false);
+  }, [allNovels, search, genre]);
 
   useEffect(() => {
     document.title = "Novel Search";
@@ -27,59 +56,28 @@ function Search({ darkMode }) {
   const loadNovels = async () => {
     setLoading(true);
     try {
-      // Fetch all novels with search parameter
-      const response = await novelApi.getAllNovels(search, genre);
-
-      // Apply exact genre matching client-side if genre is selected
-      let filteredNovels = response.data;
-      if (genre) {
-        filteredNovels = response.data.filter((novel) => novel.genre === genre);
-      }
-
-      setNovels(filteredNovels);
-
-      // Only update genres list when not filtering
-      if (!genre) {
-        const allGenres = Array.from(
-          new Set(response.data.map((n) => n.genre).filter(Boolean)),
-        ).sort();
-        setGenres(allGenres);
-      }
+      const response = await novelApi.getAllNovels();
+      const data = Array.isArray(response?.data) ? response.data : [];
+      setAllNovels(data);
+      setNovels(data);
+      setGenres(
+        Array.from(new Set(data.map((novel) => novel.genre).filter(Boolean))).sort(),
+      );
     } catch (error) {
       console.error("Error fetching novels:", error);
+      setAllNovels([]);
+      setNovels([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const getNovelByKeyword = async (keyword, genre) => {
-    console.log("here", genre);
-    setLoading(true);
-    try {
-      const response = await novelApi.getNovelByKeyword(keyword);
-      let filteredNovels = response.data;
-      if (genre) {
-        filteredNovels = filteredNovels.filter(
-          (novel) => novel.genre === genre,
-        );
-      }
-      setNovels(filteredNovels);
-    } catch (error) {
-      console.error("Error searching novels by keyword:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Simplified handler without debug logging
   const handleGenreChange = (e) => setGenre(e.target.value);
 
   const handleSearchKeyDown = (e) => {
-    console.log("handleSearchKey");
-    console.log(e);
-    // if (e.key === "Enter" || e.key === "NumpadEnter") {
-    getNovelByKeyword(search, genre);
-    // }
+    if (e.key === "Enter" || e.key === "NumpadEnter") {
+      e.preventDefault();
+    }
   };
 
   return (
@@ -154,7 +152,7 @@ function Search({ darkMode }) {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search novels by name, genre, or description..."
+            placeholder="Search by title, original name, genre, or description..."
             style={{
               width: "100%",
               padding: "16px 24px 16px 54px",
